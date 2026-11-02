@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekap Durasi File .enc & Daily Intern Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 29, 47, 0.92);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --code-bg: #030712;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top left, #1e3a8a, #090d16 50%), radial-gradient(circle at bottom right, #0f172a, #090d16 60%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 920px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* HEADER */
+    .app-header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius-lg);
+      padding: 22px 26px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* CARD PANEL */
+    .card-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius-lg);
+      padding: 22px 26px;
+      box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-cyan);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* PILIHAN MODE SCAN */
+    .scan-modes-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mode-card {
+      background: #080c16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: var(--transition);
+    }
+
+    .mode-card:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      background: #0b1120;
+    }
+
+    .mode-card.primary {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .btn-folder-pick {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: var(--transition);
+      width: 100%;
+    }
+
+    .btn-folder-pick:hover:not(:disabled) {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      transform: translateY(-1px);
+    }
+
+    .btn-auto-scan {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #ffffff;
+      border: none;
+      padding: 11px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-auto-scan:hover:not(:disabled) {
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      transform: translateY(-1px);
+    }
+
+    .code-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #0d1322;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .code-prefix {
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 9px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+    }
+
+    .code-input {
+      border: none !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+      padding: 9px 12px !important;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px !important;
+      font-weight: 700;
+      color: #38bdf8 !important;
+      letter-spacing: 0.08em;
+      width: 100%;
+      outline: none;
+    }
+
+    select, input[type="text"], textarea {
+      background: #0d1322;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+    }
+
+    select:focus, input[type="text"]:focus, textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    /* PENGATURAN PROFIL */
+    .report-profile-card {
+      background: rgba(13, 19, 34, 0.6);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    /* DATE TABS BAR */
+    .date-tabs-nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      scrollbar-width: thin;
+    }
+
+    .date-tab-item {
+      background: #0d1322;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+
+    .date-tab-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+    }
+
+    .date-tab-item.active {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .tab-badge {
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 7px;
+      border-radius: 9999px;
+    }
+
+    /* KARTU PENGATURAN LOKASI BERDASARKAN JAM */
+    .location-card-container {
+      background: rgba(13, 19, 34, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+
+    .location-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .timeline-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 3px 10px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .location-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .multi-location-toggle {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+      margin-top: 10px;
+    }
+
+    .multi-location-toggle:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+
+    .per-file-locations-box {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      display: none;
+    }
+
+    .file-loc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #080c16;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .file-loc-desc {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .file-loc-input {
+      width: 200px !important;
+      padding: 6px 10px !important;
+      font-size: 12px !important;
+    }
+
+    /* REPORT TEMPLATE BOX */
+    .report-box {
+      background: #030712;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .report-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-copy-report {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: var(--transition);
+    }
+
+    .btn-copy-report:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      transform: translateY(-1px);
+    }
+
+    .report-pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* DAILY SUMMARY TABLE */
+    .daily-table-wrapper {
+      background: #0d1322;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    .daily-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .daily-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .daily-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .daily-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+    }
+
+    .dur-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.12);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .time-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: rgba(13, 19, 34, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      transition: var(--transition);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .stat-highlight {
+      color: #38bdf8;
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: #0d1322;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .file-idx {
+      font-weight: 700;
+      color: var(--text-muted);
+      width: 20px;
+    }
+
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #cbd5e1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-times {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dur-badge-sm {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #4ade80;
+      background: rgba(74, 222, 128, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .code-container {
+      background: var(--code-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-height: 440px;
+    }
+
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+      margin-top: 14px;
+      white-space: pre-wrap;
+    }
+
+    .alert-error {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fca5a5;
+    }
+
+    .location-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 14px;
+      word-break: break-all;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      color: #6ee7b7;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="badge-status">
+        <span class="status-dot"></span>
+        <span>Client-Side & Server Engine Ready</span>
+      </div>
+      <span style="font-size: 12px; color: var(--text-muted);">Bisa Dibuka Siapa Saja di Browser</span>
+    </div>
+    <h1>Rekap Durasi File .enc & Daily Intern Report</h1>
+    <p class="subtitle">Setiap orang yang membuka web ini dapat langsung memindai SD Card di laptop masing-masing dan menyalin template laporan harian.</p>
+  </header>
+
+  <!-- PANEL KONTROL DUA METODE -->
+  <section class="card-panel">
+    <div class="section-title">
+      <span>🚀</span>
+      <span>Pilih Metode Pemindaian SD Card</span>
+    </div>
+
+    <div class="scan-modes-box">
+      <!-- METODE 1: BROWSER DIRECT (BISA DI PUBLISH KE INTERNET) -->
+      <div class="mode-card primary">
+        <div>
+          <div style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>🌐</span>
+            <span>Buka Langsung SD Card (Paling Mudah)</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+            Cocok saat dibuka di web internet publik. Browser di laptop Anda/teman Anda akan langsung membaca metadata SD Card secara lokal tanpa upload!
+          </p>
+        </div>
+        <button class="btn-folder-pick" id="btnBrowseFolder" onclick="executeBrowserScan()">
+          <span>📁</span>
+          <span>Pilih Folder SD Card / Kamera</span>
+        </button>
+      </div>
+
+      <!-- METODE 2: SCAN OTOMATIS LOCAL (JIKA RUN LOCAL SERVER) -->
+      <div class="mode-card">
+        <div>
+          <div style="font-size: 14px; font-weight: 800; color: #93c5fd; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>⚡</span>
+            <span>Cari Otomatis Drive Laptop</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+            Gunakan 4 digit seri kamera (misal: 3047) untuk memindai otomatis seluruh partisi (C:, D:, E:).
+          </p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <div class="code-input-wrapper" style="flex: 1;">
+            <span class="code-prefix">atlascm</span>
+            <input type="text" id="camCode" class="code-input" value="3047" maxlength="4" placeholder="3047">
+          </div>
+          <button id="scanBtn" class="btn-auto-scan" onclick="executeBackendScan()">
+            <span id="btnText">Scan Otomatis</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENGATURAN PROFIL PELAPOR -->
+    <div class="report-profile-card">
+      <div style="font-size: 12px; font-weight: 700; color: #93c5fd; margin-bottom: 8px;">
+        👤 Profil Pelapor (Tersimpan Otomatis di Browser Masing-Masing):
+      </div>
+      <div class="profile-grid">
+        <div>
+          <label style="font-size: 11px; margin-bottom: 2px;">Nama Anda</label>
+          <input type="text" id="profName" placeholder="Ketik nama Anda" value="Mohamad Dwi Affriza">
+        </div>
+        <div>
+          <label style="font-size: 11px; margin-bottom: 2px;">Role Operasional</label>
+          <input type="text" id="profRole" value="Recording Operations & Data QA">
+        </div>
+        <div>
+          <label style="font-size: 11px; margin-bottom: 2px;">Kamera Dibawa / Aktif</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="profCamBawa" value="1" style="width: 50%;" title="Jumlah kamera dibawa">
+            <input type="text" id="profCamAktif" value="1" style="width: 50%;" title="Jumlah kamera aktif">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="alertBox" class="alert alert-error"></div>
+    <div id="locationBadge" class="location-badge" style="display: none;"></div>
+  </section>
+
+  <!-- HASIL ANALISIS DENGAN TAB PER TANGGAL -->
+  <section class="card-panel" id="resultCard" style="display: none;">
+    
+    <!-- NAVIGASI TAB PER TANGGAL -->
+    <div class="date-tabs-nav" id="dateTabsNav"></div>
+
+    <!-- KONTEN TAB: SEMUA TANGGAL (RINGKASAN TOTAL) -->
+    <div id="tabContentAll" class="tab-content-panel">
+      <div class="section-title">
+        <span>📊</span>
+        <span>Ringkasan Seluruh Tanggal</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Actual Hours</div>
+          <div class="stat-value stat-highlight" id="statGrandTotal">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Jam Desimal</div>
+          <div class="stat-value" id="statGrandHours">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Rentang Tanggal</div>
+          <div class="stat-value" id="statRange">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total File .enc</div>
+          <div class="stat-value" id="statFilesCount">-</div>
+        </div>
+      </div>
+
+      <div class="daily-table-wrapper">
+        <table class="daily-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Rentang Jam</th>
+              <th>File</th>
+              <th>Durasi (H M S)</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="dailySummaryBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--text-muted);">Format Asli (Console Log):</span>
+        <button class="btn-copy-report" onclick="copyResultText(lastRawText, 'Format teks asli berhasil disalin!')" style="padding: 6px 14px; font-size: 12px;">
+          <span>📋</span> Salin Format Asli
+        </button>
+      </div>
+      <div class="code-container" id="codeOutput"></div>
+    </div>
+
+    <!-- KONTEN TAB: DETAIL TANGGAL SPESIFIK -->
+    <div id="tabContentSingle" class="tab-content-panel" style="display: none;">
+      
+      <!-- PENGATURAN LOKASI MANUAL BERDASARKAN JAM REKAMAN -->
+      <div class="location-card-container">
+        <div class="location-header">
+          <span style="font-size: 13px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+            <span>📍</span>
+            <span>Isi Lokasi / Tempat Rekaman:</span>
+          </span>
+          <span class="timeline-pill" id="dateTimelinePill">
+            <span>⏰</span>
+            <span id="dateTimelineText">09:08:32 - 16:00:44 (5 file)</span>
+          </span>
+        </div>
+
+        <div class="location-input-row">
+          <div style="flex: 1; min-width: 240px;">
+            <input type="text" id="singleDateLocationInput" placeholder="Ketik nama lokasi (misal: Kedai QQ)" value="Kedai QQ">
+          </div>
+          <button type="button" class="multi-location-toggle" id="btnToggleMultiLoc" onclick="toggleMultiLocationView()">
+            <span id="toggleMultiLocIcon">➕</span>
+            <span id="toggleMultiLocText">Pecah Lokasi Berdasarkan Jam File</span>
+          </button>
+        </div>
+
+        <!-- Opsi pelabelan per file/jam jika pindah lokasi -->
+        <div class="per-file-locations-box" id="perFileLocBox">
+          <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">
+            💡 <em>Isi lokasi berbeda pada file di bawah jika Anda berpindah tempat di jam tertentu:</em>
+          </div>
+          <div id="fileLocListContainer"></div>
+        </div>
+
+        <!-- Catatan Tambahan -->
+        <div style="margin-top: 12px;">
+          <label style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Catatan Tambahan Hari Ini (Opsional):</label>
+          <input type="text" id="singleDateNotesInput" placeholder="Ketik catatan (kosongkan jika tidak ada)">
+        </div>
+      </div>
+
+      <!-- REPORT TEMPLATE SIAP SALIN (PER TANGGAL) -->
+      <div class="report-box">
+        <div class="report-header-row">
+          <div>
+            <span style="font-size: 13px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em;" id="singleReportHeaderTitle">
+              ✨ Daily Intern Report Siap Salin (Per Tanggal):
+            </span>
+          </div>
+          <button class="btn-copy-report" id="btnCopySingleReport" onclick="copyCurrentSingleReport()">
+            <span>📋</span>
+            <span id="btnCopySingleReportText">Salin Laporan Tanggal Ini</span>
+          </button>
+        </div>
+        <pre class="report-pre" id="singleReportPreview"></pre>
+      </div>
+
+      <!-- DETAIL FILE PADA TANGGAL INI -->
+      <div class="section-title" style="margin-top: 20px;">
+        <span>📁</span>
+        <span id="singleDateDetailTitle">Rincian File Rekaman</span>
+      </div>
+      <div class="file-list" id="singleFileList"></div>
+    </div>
+
+  </section>
+</div>
+
+<div id="toast" class="toast">
+  <span>✅</span>
+  <span id="toastText">Format laporan berhasil disalin!</span>
+</div>
+
+<script>
+  let lastRawText = "";
+  let scanData = null;
+  let activeTabDate = "ALL";
+  let isMultiLocOpen = false;
+
+  const INDO_MONTHS = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+  function formatIndoDateStr(dateStr) {
+    try {
+      const parts = dateStr.split('-');
+      return `${parseInt(parts[2])} ${INDO_MONTHS[parseInt(parts[1])]} ${parts[0]}`;
+    } catch(e) {
+      return dateStr;
+    }
+  }
+
+  function formatHMSFromSec(totalSec) {
+    const s = Math.floor(totalSec % 60);
+    const m = Math.floor((totalSec / 60) % 60);
+    const h = Math.floor(totalSec / 3600);
+    return `${h} H ${m} M ${s} S`;
+  }
+
+  function formatIndoDurationSec(totalSec) {
+    const s = Math.floor(totalSec % 60);
+    const m = Math.floor((totalSec / 60) % 60);
+    const h = Math.floor(totalSec / 3600);
+    return `${h} jam ${m} menit ${s} detik.`;
+  }
+
+  function formatTimeHHMMSS(dateObj) {
+    const hh = String(dateObj.getHours()).padStart(2, '0');
+    const mm = String(dateObj.getMinutes()).padStart(2, '0');
+    const ss = String(dateObj.getSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function formatDateYYYYMMDD(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // Muat profil dari LocalStorage
+  function loadSavedProfile() {
+    if (localStorage.getItem('prof_name')) document.getElementById('profName').value = localStorage.getItem('prof_name');
+    if (localStorage.getItem('prof_role')) document.getElementById('profRole').value = localStorage.getItem('prof_role');
+    if (localStorage.getItem('prof_bawa')) document.getElementById('profCamBawa').value = localStorage.getItem('prof_bawa');
+    if (localStorage.getItem('prof_aktif')) document.getElementById('profCamAktif').value = localStorage.getItem('prof_aktif');
+  }
+
+  function saveProfile() {
+    localStorage.setItem('prof_name', document.getElementById('profName').value);
+    localStorage.setItem('prof_role', document.getElementById('profRole').value);
+    localStorage.setItem('prof_bawa', document.getElementById('profCamBawa').value);
+    localStorage.setItem('prof_aktif', document.getElementById('profCamAktif').value);
+    if (scanData && activeTabDate !== "ALL") {
+      updateSingleReportPreview();
+    }
+  }
+
+  ['profName', 'profRole', 'profCamBawa', 'profCamAktif'].forEach(id => {
+    document.getElementById(id).addEventListener('input', saveProfile);
+  });
+
+  document.getElementById('singleDateLocationInput').addEventListener('input', function() {
+    if (activeTabDate !== "ALL") {
+      localStorage.setItem(`loc_main_${activeTabDate}`, this.value);
+      updateSingleReportPreview();
+    }
+  });
+
+  document.getElementById('singleDateNotesInput').addEventListener('input', function() {
+    if (activeTabDate !== "ALL") {
+      localStorage.setItem(`notes_${activeTabDate}`, this.value);
+      updateSingleReportPreview();
+    }
+  });
+
+  document.getElementById('camCode').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+  });
+
+  document.getElementById('camCode').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') executeBackendScan();
+  });
+
+  // ==============================================================
+  // METODE 1: CLIENT-SIDE DIRECT BROWSER SCAN (UNTUK WEB INTERNET)
+  // Membaca SD Card langsung di browser siapapun yang membuka web!
+  // ==============================================================
+  async function executeBrowserScan() {
+    const alertBox = document.getElementById('alertBox');
+    const locationBadge = document.getElementById('locationBadge');
+    const resultCard = document.getElementById('resultCard');
+
+    alertBox.style.display = 'none';
+    locationBadge.style.display = 'none';
+
+    if (!window.showDirectoryPicker) {
+      showAlert("Browser Anda tidak mendukung File System Access API. Silakan gunakan Google Chrome atau Microsoft Edge terbaru di PC/Laptop.");
+      return;
+    }
+
+    try {
+      const dirHandle = await window.showDirectoryPicker();
+      locationBadge.innerHTML = `<span>📁 Memindai SD Card / Folder:</span> <strong>${dirHandle.name}</strong>`;
+      locationBadge.style.display = 'inline-flex';
+
+      const encFiles = {}; // baseUUID -> File
+      const jsonFiles = {}; // baseUUID -> File
+
+      async function readEntries(handle) {
+        for await (const entry of handle.values()) {
+          if (entry.kind === 'file') {
+            const name = entry.name;
+            if (name.endsWith('.enc')) {
+              const base = name.replace('.mcap.enc', '').replace('.enc', '');
+              encFiles[base] = await entry.getFile();
+            } else if (name.endsWith('.json') && !name.endsWith('-meta.json')) {
+              const base = name.replace('.json', '');
+              jsonFiles[base] = await entry.getFile();
+            }
+          } else if (entry.kind === 'directory') {
+            await readEntries(entry);
+          }
+        }
+      }
+
+      await readEntries(dirHandle);
+
+      const encKeys = Object.keys(encFiles);
+      if (encKeys.length === 0) {
+        showAlert(`Folder "${dirHandle.name}" berhasil dibuka, tetapi tidak ditemukan file berekstensi .enc di dalamnya.`);
+        resultCard.style.display = 'none';
+        return;
+      }
+
+      // Proses perhitungan waktu
+      const groupedData = {}; // dateKey -> array of item
+      let foundFiles = encKeys.length;
+
+      for (const base of encKeys) {
+        const encFile = encFiles[base];
+        const jsonFile = jsonFiles[base];
+
+        let startTime = null;
+        let endTime = new Date(encFile.lastModified);
+
+        // Ambil waktu mulai dari metadata JSON kamera (started_epoch_ms)
+        if (jsonFile) {
+          try {
+            const text = await jsonFile.text();
+            const jdata = JSON.parse(text);
+            const epoch_ms = jdata?.recording?.started_epoch_ms;
+            if (epoch_ms) {
+              startTime = new Date(parseInt(epoch_ms));
+            }
+          } catch(e) {
+            console.warn("Gagal parse metadata JSON:", e);
+          }
+        }
+
+        // Fallback jika tidak ada started_epoch_ms
+        if (!startTime) {
+          startTime = jsonFile ? new Date(jsonFile.lastModified) : new Date(encFile.lastModified);
+        }
+
+        const durationSeconds = Math.max(0, (endTime.getTime() - startTime.getTime()) / 1000);
+        const dateKey = formatDateYYYYMMDD(startTime);
+
+        if (!groupedData[dateKey]) groupedData[dateKey] = [];
+        groupedData[dateKey].push({
+          file: encFile.name,
+          start: startTime,
+          end: endTime,
+          duration_seconds: durationSeconds
+        });
+      }
+
+      // Bangun struktur output persis backend
+      const datesList = Object.keys(groupedData).sort();
+      let grandTotalSeconds = 0;
+      const summaryPerDate = [];
+      const formattedGroups = [];
+
+      let rawLines = [
+        "========================================",
+        `  LOKASI FOLDER : ${dirHandle.name}`,
+        `  TOTAL FILE    : ${foundFiles} file .enc`,
+        "========================================\n",
+        "=== RINGKASAN PER TANGGAL ==="
+      ];
+
+      for (const dateStr of datesList) {
+        const items = groupedData[dateStr];
+        const dateTotalSec = items.reduce((acc, cur) => acc + cur.duration_seconds, 0);
+        grandTotalSeconds += dateTotalSec;
+
+        const firstStart = new Date(Math.min(...items.map(it => it.start.getTime())));
+        const lastEnd = new Date(Math.max(...items.map(it => it.end.getTime())));
+        const firstStartStr = formatTimeHHMMSS(firstStart);
+        const lastEndStr = formatTimeHHMMSS(lastEnd);
+
+        const dateTotalHMS = formatHMSFromSec(dateTotalSec);
+        const dateTotalIndo = formatIndoDurationSec(dateTotalSec);
+        const dateIndo = formatIndoDateStr(dateStr);
+        const hoursDec = Math.round((dateTotalSec / 3600) * 100) / 100;
+
+        rawLines.push(`• Tanggal ${dateStr} (${dateIndo}) > ${dateTotalHMS} (${dateTotalIndo})`);
+
+        summaryPerDate.push({
+          date: dateStr,
+          date_indo: dateIndo,
+          total_hms: dateTotalHMS,
+          total_indo: dateTotalIndo,
+          total_hours: hoursDec,
+          total_seconds: dateTotalSec,
+          file_count: items.length,
+          start_time: firstStartStr,
+          end_time: lastEndStr
+        });
+
+        const itemsData = items.map((it, idx) => ({
+          index: idx + 1,
+          file: it.file,
+          duration: formatHMSFromSec(it.duration_seconds),
+          duration_indo: formatIndoDurationSec(it.duration_seconds),
+          duration_seconds: it.duration_seconds,
+          start: formatTimeHHMMSS(it.start),
+          end: formatTimeHHMMSS(it.end)
+        }));
+
+        formattedGroups.push({
+          date: dateStr,
+          date_indo: dateIndo,
+          total_hms: dateTotalHMS,
+          total_indo: dateTotalIndo,
+          total_hours: hoursDec,
+          total_seconds: dateTotalSec,
+          file_count: items.length,
+          start_time: firstStartStr,
+          end_time: lastEndStr,
+          items: itemsData
+        });
+      }
+
+      const minDate = datesList[0].split('-')[2];
+      const maxDate = datesList[datesList.length - 1].split('-')[2];
+      const rangeLabel = minDate === maxDate ? minDate : `${minDate}-${maxDate}`;
+      const grandTotalHMS = formatHMSFromSec(grandTotalSeconds);
+      const grandTotalHours = Math.round((grandTotalSeconds / 3600) * 100) / 100;
+      const grandTotalIndo = formatIndoDurationSec(grandTotalSeconds);
+
+      rawLines.push("----------------------------------------");
+      rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS} (${grandTotalHours} jam | ${grandTotalIndo})\n`);
+      rawLines.push("=== DETAIL PER TANGGAL & FILE ===");
+
+      formattedGroups.forEach(g => {
+        rawLines.push(`\ntanggal ${g.date} (${g.date_indo}) > ${g.total_hms}`);
+        g.items.forEach(it => {
+          rawLines.push(`   ${it.index}. ${it.duration} (${it.start} - ${it.end}) [File: ${it.file}]`);
+        });
+      });
+
+      rawLines.push("\n" + "=".repeat(40));
+      rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS}`);
+      const rawText = rawLines.join('\n');
+
+      scanData = {
+        success: true,
+        target_folder: dirHandle.name,
+        found_files: foundFiles,
+        dates_count: datesList.length,
+        range_label: rangeLabel,
+        grand_total_hms: grandTotalHMS,
+        grand_total_hours: grandTotalHours,
+        grand_total_indo: grandTotalIndo,
+        summary_per_date: summaryPerDate,
+        groups: formattedGroups,
+        raw_text: rawText
+      };
+
+      lastRawText = rawText;
+
+      // Update UI
+      document.getElementById('statGrandTotal').textContent = grandTotalHMS;
+      document.getElementById('statGrandHours').textContent = `${grandTotalHours} Jam`;
+      document.getElementById('statRange').textContent = `Total ${rangeLabel}`;
+      document.getElementById('statFilesCount').textContent = `${foundFiles} File`;
+      document.getElementById('codeOutput').textContent = rawText;
+
+      renderDateTabs(summaryPerDate);
+      renderDailySummaryTable(summaryPerDate);
+
+      if (summaryPerDate.length > 0) {
+        switchDateTab(summaryPerDate[summaryPerDate.length - 1].date);
+      } else {
+        switchDateTab('ALL');
+      }
+
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        showAlert(`Kendala saat memindai folder: ${err.message}`);
+      }
+    }
+  }
+
+  // ==============================================================
+  // METODE 2: SCAN VIA BACKEND PYTHON LOKAL
+  // ==============================================================
+  async function executeBackendScan() {
+    const code = document.getElementById('camCode').value.trim();
+    const alertBox = document.getElementById('alertBox');
+    const locationBadge = document.getElementById('locationBadge');
+    const scanBtn = document.getElementById('scanBtn');
+    const btnText = document.getElementById('btnText');
+    const resultCard = document.getElementById('resultCard');
+
+    alertBox.style.display = 'none';
+    locationBadge.style.display = 'none';
+
+    if (!code || code.length !== 4) {
+      showAlert("⚠️ Mohon masukan 4 digit nomor seri kamera dengan benar (contoh: 3047).");
+      return;
+    }
+
+    scanBtn.disabled = true;
+    btnText.textContent = "Mencari...";
+
+    try {
+      let apiUrl = `/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
+      if (window.location.protocol === 'file:') {
+        apiUrl = `http://localhost:8000/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
+      }
+
+      let res;
+      try {
+        res = await fetch(apiUrl);
+      } catch (e1) {
+        if (!apiUrl.startsWith('http://localhost:8000')) {
+          res = await fetch(`http://localhost:8000/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`);
+        } else {
+          throw e1;
+        }
+      }
+
+      const data = await res.json();
+
+      if (!data.success) {
+        showAlert(data.error || "Gagal memindai folder kamera.");
+        resultCard.style.display = 'none';
+        return;
+      }
+
+      scanData = data;
+      lastRawText = data.raw_text;
+
+      locationBadge.innerHTML = `<span>📁 Ditemukan di:</span> <strong>${data.target_folder}</strong>`;
+      locationBadge.style.display = 'inline-flex';
+
+      document.getElementById('statGrandTotal').textContent = data.grand_total_hms;
+      document.getElementById('statGrandHours').textContent = `${data.grand_total_hours} Jam`;
+      document.getElementById('statRange').textContent = `Total ${data.range_label}`;
+      document.getElementById('statFilesCount').textContent = `${data.found_files} File`;
+      document.getElementById('codeOutput').textContent = data.raw_text;
+
+      renderDateTabs(data.summary_per_date);
+      renderDailySummaryTable(data.summary_per_date);
+
+      if (data.summary_per_date.length > 0) {
+        switchDateTab(data.summary_per_date[data.summary_per_date.length - 1].date);
+      } else {
+        switchDateTab('ALL');
+      }
+
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      showAlert(
+        `Kendala koneksi backend: ${err.message}.\n\n` +
+        `💡 CARA PALING MUDAH (TANPA PYTHON):\n` +
+        `Gunakan tombol "Pilih Folder SD Card / Kamera" di atas atau tombol di bawah ini.\n\n` +
+        `Jika ingin fitur "Scan Otomatis" berfungsi:\n` +
+        `• Pastikan server backend sudah berjalan via "start_web_app.bat" (http://localhost:8000).`,
+        true
+      );
+    } finally {
+      scanBtn.disabled = false;
+      btnText.textContent = "Scan Otomatis";
+    }
+  }
+
+  function renderDateTabs(summaryList) {
+    const nav = document.getElementById('dateTabsNav');
+    nav.innerHTML = '';
+
+    const allBtn = document.createElement('button');
+    allBtn.className = 'date-tab-item active';
+    allBtn.id = 'tabNav_ALL';
+    allBtn.innerHTML = `<span>📊 Semua Tanggal</span> <span class="tab-badge">${summaryList.length} hari</span>`;
+    allBtn.onclick = () => switchDateTab('ALL');
+    nav.appendChild(allBtn);
+
+    summaryList.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'date-tab-item';
+      btn.id = `tabNav_${s.date}`;
+      btn.innerHTML = `<span>📅 ${s.date_indo}</span> <span class="tab-badge">${s.file_count} file</span>`;
+      btn.onclick = () => switchDateTab(s.date);
+      nav.appendChild(btn);
+    });
+  }
+
+  function switchDateTab(dateKey) {
+    activeTabDate = dateKey;
+
+    document.querySelectorAll('.date-tab-item').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.getElementById(`tabNav_${dateKey}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    const tabAll = document.getElementById('tabContentAll');
+    const tabSingle = document.getElementById('tabContentSingle');
+
+    if (dateKey === 'ALL') {
+      tabAll.style.display = 'block';
+      tabSingle.style.display = 'none';
+    } else {
+      tabAll.style.display = 'none';
+      tabSingle.style.display = 'block';
+      initSingleDateView(dateKey);
+    }
+  }
+
+  function toggleMultiLocationView() {
+    isMultiLocOpen = !isMultiLocOpen;
+    const box = document.getElementById('perFileLocBox');
+    const icon = document.getElementById('toggleMultiLocIcon');
+    const text = document.getElementById('toggleMultiLocText');
+
+    if (isMultiLocOpen) {
+      box.style.display = 'block';
+      icon.textContent = '➖';
+      text.textContent = 'Sembunyikan Pemecahan Lokasi';
+    } else {
+      box.style.display = 'none';
+      icon.textContent = '➕';
+      text.textContent = 'Pecah Lokasi Berdasarkan Jam File';
+    }
+  }
+
+  function generateReportText(dateKey) {
+    if (!scanData) return "";
+    const summary = scanData.summary_per_date.find(s => s.date === dateKey);
+    const group = scanData.groups.find(g => g.date === dateKey);
+    if (!summary || !group) return "";
+
+    const name = document.getElementById('profName').value.trim() || "Nama";
+    const role = document.getElementById('profRole').value.trim() || "Recording Operations & Data QA";
+    const camBawa = document.getElementById('profCamBawa').value.trim() || "1";
+    const camAktif = document.getElementById('profCamAktif').value.trim() || "1";
+    const notes = document.getElementById('singleDateNotesInput').value.trim();
+
+    const mainLocation = document.getElementById('singleDateLocationInput').value.trim() || "Kedai QQ";
+
+    const locMap = {};
+
+    group.items.forEach((item, idx) => {
+      const fileLocInput = document.getElementById(`fileLocInput_${dateKey}_${idx}`);
+      const loc = (fileLocInput && fileLocInput.value.trim()) ? fileLocInput.value.trim() : mainLocation;
+      if (!locMap[loc]) {
+        locMap[loc] = 0;
+      }
+      locMap[loc] += item.duration_seconds;
+    });
+
+    const locations = Object.keys(locMap);
+    let actualHoursText = "";
+
+    if (locations.length <= 1) {
+      const locName = locations[0] || mainLocation;
+      actualHoursText = `📍${locName}\n${summary.total_indo}`;
+    } else {
+      actualHoursText = locations.map(loc => {
+        return `📍${loc}\n${formatIndoDurationSec(locMap[loc])}`;
+      }).join('\n');
+    }
+
+    let report = `📋 Daily Physical AI Intern Report \n\n👤 Nama : ${name}\n⚙️ Role : ${role}\n📅 Tanggal : ${summary.date_indo}\n\n📊 Summary Hari Ini\n* Jumlah kamera yang dibawa : ${camBawa}\n* Jumlah kamera aktif : ${camAktif}\n* Jumlah actual hours: \n${actualHoursText}\n\n📝 Catatan:\n${notes}`;
+
+    return report.trim();
+  }
+
+  function updateSingleReportPreview() {
+    const text = generateReportText(activeTabDate);
+    document.getElementById('singleReportPreview').textContent = text;
+  }
+
+  function initSingleDateView(dateKey) {
+    const summary = scanData.summary_per_date.find(s => s.date === dateKey);
+    const group = scanData.groups.find(g => g.date === dateKey);
+    if (!summary || !group) return;
+
+    document.getElementById('dateTimelineText').textContent = `${summary.start_time} - ${summary.end_time} (${summary.file_count} file | Total: ${summary.total_indo})`;
+
+    const headerTitleEl = document.getElementById('singleReportHeaderTitle');
+    if (headerTitleEl) {
+      headerTitleEl.innerHTML = `✨ Daily Intern Report Siap Salin — <span style="color: #60a5fa;">Tanggal ${summary.date_indo}</span>:`;
+    }
+    const btnCopyTextEl = document.getElementById('btnCopySingleReportText');
+    if (btnCopyTextEl) {
+      btnCopyTextEl.textContent = `Salin Laporan (${summary.date_indo})`;
+    }
+
+    const savedLoc = localStorage.getItem(`loc_main_${dateKey}`) || "Kedai QQ";
+    document.getElementById('singleDateLocationInput').value = savedLoc;
+
+    const savedNotes = localStorage.getItem(`notes_${dateKey}`) || "";
+    document.getElementById('singleDateNotesInput').value = savedNotes;
+
+    isMultiLocOpen = false;
+    document.getElementById('perFileLocBox').style.display = 'none';
+    document.getElementById('toggleMultiLocIcon').textContent = '➕';
+    document.getElementById('toggleMultiLocText').textContent = 'Pecah Lokasi Berdasarkan Jam File';
+
+    const locBox = document.getElementById('fileLocListContainer');
+    locBox.innerHTML = '';
+
+    group.items.forEach((item, idx) => {
+      const savedItemLoc = localStorage.getItem(`loc_file_${dateKey}_${idx}`) || "";
+      const div = document.createElement('div');
+      div.className = 'file-loc-row';
+      div.innerHTML = `
+        <div class="file-loc-desc">
+          <span style="color: var(--text-muted); font-weight: 700;">#${item.index}</span>
+          <span style="color: #38bdf8;">${item.start} - ${item.end}</span>
+          <span style="color: #4ade80;">(${item.duration_indo})</span>
+        </div>
+        <div>
+          <input type="text" class="file-loc-input" id="fileLocInput_${dateKey}_${idx}" placeholder="${savedLoc}" value="${savedItemLoc}">
+        </div>
+      `;
+      locBox.appendChild(div);
+
+      setTimeout(() => {
+        const inp = document.getElementById(`fileLocInput_${dateKey}_${idx}`);
+        if (inp) {
+          inp.addEventListener('input', () => {
+            localStorage.setItem(`loc_file_${dateKey}_${idx}`, inp.value.trim());
+            updateSingleReportPreview();
+          });
+        }
+      }, 0);
+    });
+
+    document.getElementById('singleDateDetailTitle').textContent = `Rincian File (${group.items.length} file) - Tanggal ${group.date_indo}`;
+    const list = document.getElementById('singleFileList');
+    list.innerHTML = '';
+
+    group.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      row.innerHTML = `
+        <div class="file-info">
+          <span class="file-idx">${item.index}.</span>
+          <span class="file-name" title="${item.file}">${item.file}</span>
+        </div>
+        <div class="file-times">
+          <span class="time-badge">${item.start} - ${item.end}</span>
+          <span class="dur-badge-sm">${item.duration_indo}</span>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    updateSingleReportPreview();
+  }
+
+  function renderDailySummaryTable(summaryList) {
+    const tbody = document.getElementById('dailySummaryBody');
+    tbody.innerHTML = '';
+
+    summaryList.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong style="color: #93c5fd;">📅 ${item.date_indo}</strong></td>
+        <td><span class="time-badge">${item.start_time} - ${item.end_time}</span></td>
+        <td><strong>${item.file_count}</strong> file</td>
+        <td><span class="dur-pill">${item.total_hms}</span></td>
+        <td>
+          <button class="btn-copy-report" onclick="event.stopPropagation(); switchDateTab('${item.date}')" style="padding: 4px 10px; font-size: 11px;">
+            Buka Tab Laporan ➔
+          </button>
+        </td>
+      `;
+      tr.onclick = () => switchDateTab(item.date);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function copyCurrentSingleReport() {
+    const text = generateReportText(activeTabDate);
+    const summary = scanData && scanData.summary_per_date ? scanData.summary_per_date.find(s => s.date === activeTabDate) : null;
+    const label = summary ? summary.date_indo : activeTabDate;
+    copyResultText(text, `📋 Format Daily Report (${label}) berhasil disalin!`);
+  }
+
+  function copyResultText(text, successMsg) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(successMsg || "Berhasil disalin ke clipboard!");
+    }).catch(err => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(successMsg || "Berhasil disalin ke clipboard!");
+    });
+  }
+
+  function showToast(text) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = text;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2800);
+  }
+
+  function showAlert(msg, showFolderBtn = false) {
+    const alertBox = document.getElementById('alertBox');
+    if (showFolderBtn) {
+      alertBox.innerHTML = `<div>${msg.replace(/\n/g, '<br>')}</div>
+        <div style="margin-top: 12px;">
+          <button type="button" class="btn-folder-pick" style="padding: 10px 18px; font-size: 13px; font-weight: bold; background: #059669; color: white;" onclick="executeBrowserScan()">
+            📁 Klik di Sini: Pilih Folder SD Card / Kamera Manual
+          </button>
+        </div>`;
+    } else {
+      alertBox.textContent = msg;
+    }
+    alertBox.style.display = 'block';
+  }
+
+  loadSavedProfile();
+</script>
+
+</body>
+</html>

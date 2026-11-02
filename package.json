@@ -1,0 +1,8 @@
+{
+  "name": "rekap-kamera-enc",
+  "version": "1.0.0",
+  "description": "Rekap Durasi File .enc & Daily Intern Report",
+  "scripts": {
+    "start": "python server.py"
+  }
+}
