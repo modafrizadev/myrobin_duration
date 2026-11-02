@@ -737,15 +737,15 @@
         </button>
       </div>
 
-      <!-- METODE 2: SCAN OTOMATIS LOCAL (JIKA RUN LOCAL SERVER) -->
+      <!-- METODE 2: SCAN KAMERA BERDASARKAN KODE -->
       <div class="mode-card">
         <div>
           <div style="font-size: 14px; font-weight: 800; color: #93c5fd; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
             <span>⚡</span>
-            <span>Cari Otomatis Drive Laptop</span>
+            <span>Cari Berdasarkan Seri Kamera</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-            Gunakan 4 digit seri kamera (misal: 3047) untuk memindai otomatis seluruh partisi (C:, D:, E:).
+          <p id="scanMode2Desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+            Gunakan 4 digit seri kamera (misal: 3047) untuk memindai otomatis file rekaman kamera tersebut.
           </p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
@@ -759,6 +759,7 @@
         </div>
       </div>
     </div>
+    <input type="file" id="fallbackFolderInput" webkitdirectory directory multiple style="display: none;">
 
     <!-- PENGATURAN PROFIL PELAPOR -->
     <div class="report-profile-card">
@@ -1007,10 +1008,212 @@
   });
 
   // ==============================================================
-  // METODE 1: CLIENT-SIDE DIRECT BROWSER SCAN (UNTUK WEB INTERNET)
-  // Membaca SD Card langsung di browser siapapun yang membuka web!
+  // METODE 1: CLIENT-SIDE DIRECT BROWSER SCAN (UNTUK WEB & CLOUD)
+  // Membaca SD Card langsung di browser secara lokal tanpa upload!
   // ==============================================================
-  async function executeBrowserScan() {
+  async function processEncAndJsonMaps(encFiles, jsonFiles, folderName, filterCode = "") {
+    const alertBox = document.getElementById('alertBox');
+    const locationBadge = document.getElementById('locationBadge');
+    const resultCard = document.getElementById('resultCard');
+
+    let encKeys = Object.keys(encFiles);
+    if (encKeys.length === 0) {
+      showAlert(`Folder "${folderName}" berhasil dibuka, tetapi tidak ditemukan file berekstensi .enc di dalamnya.`);
+      resultCard.style.display = 'none';
+      return;
+    }
+
+    let isFiltered = false;
+    if (filterCode) {
+      const targetToken = `atlascm${filterCode}`.toLowerCase();
+      const codeToken = filterCode.toLowerCase();
+      const matchedKeys = encKeys.filter(k => {
+        const item = encFiles[k];
+        const p = (item.path || item.name || k).toLowerCase();
+        return p.includes(targetToken) || p.includes(codeToken);
+      });
+
+      if (matchedKeys.length > 0) {
+        encKeys = matchedKeys;
+        isFiltered = true;
+      }
+    }
+
+    let badgeText = `<span>📁 Memindai SD Card:</span> <strong>${folderName}</strong>`;
+    if (filterCode) {
+      badgeText = `<span>📁 Kamera atlascm${filterCode}:</span> <strong>${folderName}</strong>` + (isFiltered ? ` (${encKeys.length} file)` : '');
+    }
+    locationBadge.innerHTML = badgeText;
+    locationBadge.style.display = 'inline-flex';
+
+    // Proses perhitungan waktu
+    const groupedData = {};
+    let foundFiles = encKeys.length;
+
+    for (const base of encKeys) {
+      const encItem = encFiles[base];
+      const encFile = encItem.file || encItem;
+      const jsonItem = jsonFiles[base];
+      const jsonFile = jsonItem ? (jsonItem.file || jsonItem) : null;
+
+      let startTime = null;
+      let endTime = new Date(encFile.lastModified);
+
+      if (jsonFile) {
+        try {
+          const text = await jsonFile.text();
+          const jdata = JSON.parse(text);
+          const epoch_ms = jdata?.recording?.started_epoch_ms;
+          if (epoch_ms) {
+            startTime = new Date(parseInt(epoch_ms));
+          }
+        } catch(e) {
+          console.warn("Gagal parse metadata JSON:", e);
+        }
+      }
+
+      if (!startTime) {
+        startTime = jsonFile ? new Date(jsonFile.lastModified) : new Date(encFile.lastModified);
+      }
+
+      const durationSeconds = Math.max(0, (endTime.getTime() - startTime.getTime()) / 1000);
+      const dateKey = formatDateYYYYMMDD(startTime);
+
+      if (!groupedData[dateKey]) groupedData[dateKey] = [];
+      groupedData[dateKey].push({
+        file: encFile.name,
+        start: startTime,
+        end: endTime,
+        duration_seconds: durationSeconds
+      });
+    }
+
+    // Bangun struktur output persis backend
+    const datesList = Object.keys(groupedData).sort();
+    let grandTotalSeconds = 0;
+    const summaryPerDate = [];
+    const formattedGroups = [];
+
+    let rawLines = [
+      "========================================",
+      `  LOKASI FOLDER : ${folderName}` + (filterCode ? ` (atlascm${filterCode})` : ''),
+      `  TOTAL FILE    : ${foundFiles} file .enc`,
+      "========================================\n",
+      "=== RINGKASAN PER TANGGAL ==="
+    ];
+
+    for (const dateStr of datesList) {
+      const items = groupedData[dateStr];
+      const dateTotalSec = items.reduce((acc, cur) => acc + cur.duration_seconds, 0);
+      grandTotalSeconds += dateTotalSec;
+
+      const firstStart = new Date(Math.min(...items.map(it => it.start.getTime())));
+      const lastEnd = new Date(Math.max(...items.map(it => it.end.getTime())));
+      const firstStartStr = formatTimeHHMMSS(firstStart);
+      const lastEndStr = formatTimeHHMMSS(lastEnd);
+
+      const dateTotalHMS = formatHMSFromSec(dateTotalSec);
+      const dateTotalIndo = formatIndoDurationSec(dateTotalSec);
+      const dateIndo = formatIndoDateStr(dateStr);
+      const hoursDec = Math.round((dateTotalSec / 3600) * 100) / 100;
+
+      rawLines.push(`• Tanggal ${dateStr} (${dateIndo}) > ${dateTotalHMS} (${dateTotalIndo})`);
+
+      summaryPerDate.push({
+        date: dateStr,
+        date_indo: dateIndo,
+        total_hms: dateTotalHMS,
+        total_indo: dateTotalIndo,
+        total_hours: hoursDec,
+        total_seconds: dateTotalSec,
+        file_count: items.length,
+        start_time: firstStartStr,
+        end_time: lastEndStr
+      });
+
+      const itemsData = items.map((it, idx) => ({
+        index: idx + 1,
+        file: it.file,
+        duration: formatHMSFromSec(it.duration_seconds),
+        duration_indo: formatIndoDurationSec(it.duration_seconds),
+        duration_seconds: it.duration_seconds,
+        start: formatTimeHHMMSS(it.start),
+        end: formatTimeHHMMSS(it.end)
+      }));
+
+      formattedGroups.push({
+        date: dateStr,
+        date_indo: dateIndo,
+        total_hms: dateTotalHMS,
+        total_indo: dateTotalIndo,
+        total_hours: hoursDec,
+        total_seconds: dateTotalSec,
+        file_count: items.length,
+        start_time: firstStartStr,
+        end_time: lastEndStr,
+        items: itemsData
+      });
+    }
+
+    const minDate = datesList[0].split('-')[2];
+    const maxDate = datesList[datesList.length - 1].split('-')[2];
+    const rangeLabel = minDate === maxDate ? minDate : `${minDate}-${maxDate}`;
+    const grandTotalHMS = formatHMSFromSec(grandTotalSeconds);
+    const grandTotalHours = Math.round((grandTotalSeconds / 3600) * 100) / 100;
+    const grandTotalIndo = formatIndoDurationSec(grandTotalSeconds);
+
+    rawLines.push("----------------------------------------");
+    rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS} (${grandTotalHours} jam | ${grandTotalIndo})\n`);
+    rawLines.push("=== DETAIL PER TANGGAL & FILE ===");
+
+    formattedGroups.forEach(g => {
+      rawLines.push(`\ntanggal ${g.date} (${g.date_indo}) > ${g.total_hms}`);
+      g.items.forEach(it => {
+        rawLines.push(`   ${it.index}. ${it.duration} (${it.start} - ${it.end}) [File: ${it.file}]`);
+      });
+    });
+
+    rawLines.push("\n" + "=".repeat(40));
+    rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS}`);
+    const rawText = rawLines.join('\n');
+
+    scanData = {
+      success: true,
+      target_folder: folderName,
+      found_files: foundFiles,
+      dates_count: datesList.length,
+      range_label: rangeLabel,
+      grand_total_hms: grandTotalHMS,
+      grand_total_hours: grandTotalHours,
+      grand_total_indo: grandTotalIndo,
+      summary_per_date: summaryPerDate,
+      groups: formattedGroups,
+      raw_text: rawText
+    };
+
+    lastRawText = rawText;
+
+    // Update UI
+    document.getElementById('statGrandTotal').textContent = grandTotalHMS;
+    document.getElementById('statGrandHours').textContent = `${grandTotalHours} Jam`;
+    document.getElementById('statRange').textContent = `Total ${rangeLabel}`;
+    document.getElementById('statFilesCount').textContent = `${foundFiles} File`;
+    document.getElementById('codeOutput').textContent = rawText;
+
+    renderDateTabs(summaryPerDate);
+    renderDailySummaryTable(summaryPerDate);
+
+    if (summaryPerDate.length > 0) {
+      switchDateTab(summaryPerDate[summaryPerDate.length - 1].date);
+    } else {
+      switchDateTab('ALL');
+    }
+
+    resultCard.style.display = 'block';
+    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function executeBrowserScan(filterCode = "") {
     const alertBox = document.getElementById('alertBox');
     const locationBadge = document.getElementById('locationBadge');
     const resultCard = document.getElementById('resultCard');
@@ -1019,209 +1222,59 @@
     locationBadge.style.display = 'none';
 
     if (!window.showDirectoryPicker) {
-      showAlert("Browser Anda tidak mendukung File System Access API. Silakan gunakan Google Chrome atau Microsoft Edge terbaru di PC/Laptop.");
+      const fallbackInput = document.getElementById('fallbackFolderInput');
+      if (fallbackInput) {
+        fallbackInput.onchange = async (e) => {
+          const fileList = Array.from(e.target.files || []);
+          if (fileList.length === 0) return;
+          const encFiles = {};
+          const jsonFiles = {};
+          fileList.forEach(f => {
+            const path = f.webkitRelativePath || f.name;
+            const name = f.name;
+            if (name.endsWith('.enc')) {
+              const base = name.replace('.mcap.enc', '').replace('.enc', '');
+              encFiles[base] = { file: f, path: path };
+            } else if (name.endsWith('.json') && !name.endsWith('-meta.json')) {
+              const base = name.replace('.json', '');
+              jsonFiles[base] = { file: f, path: path };
+            }
+          });
+          const folderName = fileList[0].webkitRelativePath?.split('/')[0] || "Folder Terpilih";
+          await processEncAndJsonMaps(encFiles, jsonFiles, folderName, filterCode);
+        };
+        fallbackInput.click();
+        return;
+      }
+      showAlert("Browser Anda tidak mendukung pemilihan folder. Silakan gunakan Google Chrome atau Microsoft Edge di PC/Laptop.");
       return;
     }
 
     try {
       const dirHandle = await window.showDirectoryPicker();
-      locationBadge.innerHTML = `<span>📁 Memindai SD Card / Folder:</span> <strong>${dirHandle.name}</strong>`;
-      locationBadge.style.display = 'inline-flex';
+      const encFiles = {}; // baseUUID -> { file, path }
+      const jsonFiles = {}; // baseUUID -> { file, path }
 
-      const encFiles = {}; // baseUUID -> File
-      const jsonFiles = {}; // baseUUID -> File
-
-      async function readEntries(handle) {
+      async function readEntries(handle, currentPath = "") {
         for await (const entry of handle.values()) {
+          const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
           if (entry.kind === 'file') {
             const name = entry.name;
             if (name.endsWith('.enc')) {
               const base = name.replace('.mcap.enc', '').replace('.enc', '');
-              encFiles[base] = await entry.getFile();
+              encFiles[base] = { file: await entry.getFile(), path: entryPath };
             } else if (name.endsWith('.json') && !name.endsWith('-meta.json')) {
               const base = name.replace('.json', '');
-              jsonFiles[base] = await entry.getFile();
+              jsonFiles[base] = { file: await entry.getFile(), path: entryPath };
             }
           } else if (entry.kind === 'directory') {
-            await readEntries(entry);
+            await readEntries(entry, entryPath);
           }
         }
       }
 
-      await readEntries(dirHandle);
-
-      const encKeys = Object.keys(encFiles);
-      if (encKeys.length === 0) {
-        showAlert(`Folder "${dirHandle.name}" berhasil dibuka, tetapi tidak ditemukan file berekstensi .enc di dalamnya.`);
-        resultCard.style.display = 'none';
-        return;
-      }
-
-      // Proses perhitungan waktu
-      const groupedData = {}; // dateKey -> array of item
-      let foundFiles = encKeys.length;
-
-      for (const base of encKeys) {
-        const encFile = encFiles[base];
-        const jsonFile = jsonFiles[base];
-
-        let startTime = null;
-        let endTime = new Date(encFile.lastModified);
-
-        // Ambil waktu mulai dari metadata JSON kamera (started_epoch_ms)
-        if (jsonFile) {
-          try {
-            const text = await jsonFile.text();
-            const jdata = JSON.parse(text);
-            const epoch_ms = jdata?.recording?.started_epoch_ms;
-            if (epoch_ms) {
-              startTime = new Date(parseInt(epoch_ms));
-            }
-          } catch(e) {
-            console.warn("Gagal parse metadata JSON:", e);
-          }
-        }
-
-        // Fallback jika tidak ada started_epoch_ms
-        if (!startTime) {
-          startTime = jsonFile ? new Date(jsonFile.lastModified) : new Date(encFile.lastModified);
-        }
-
-        const durationSeconds = Math.max(0, (endTime.getTime() - startTime.getTime()) / 1000);
-        const dateKey = formatDateYYYYMMDD(startTime);
-
-        if (!groupedData[dateKey]) groupedData[dateKey] = [];
-        groupedData[dateKey].push({
-          file: encFile.name,
-          start: startTime,
-          end: endTime,
-          duration_seconds: durationSeconds
-        });
-      }
-
-      // Bangun struktur output persis backend
-      const datesList = Object.keys(groupedData).sort();
-      let grandTotalSeconds = 0;
-      const summaryPerDate = [];
-      const formattedGroups = [];
-
-      let rawLines = [
-        "========================================",
-        `  LOKASI FOLDER : ${dirHandle.name}`,
-        `  TOTAL FILE    : ${foundFiles} file .enc`,
-        "========================================\n",
-        "=== RINGKASAN PER TANGGAL ==="
-      ];
-
-      for (const dateStr of datesList) {
-        const items = groupedData[dateStr];
-        const dateTotalSec = items.reduce((acc, cur) => acc + cur.duration_seconds, 0);
-        grandTotalSeconds += dateTotalSec;
-
-        const firstStart = new Date(Math.min(...items.map(it => it.start.getTime())));
-        const lastEnd = new Date(Math.max(...items.map(it => it.end.getTime())));
-        const firstStartStr = formatTimeHHMMSS(firstStart);
-        const lastEndStr = formatTimeHHMMSS(lastEnd);
-
-        const dateTotalHMS = formatHMSFromSec(dateTotalSec);
-        const dateTotalIndo = formatIndoDurationSec(dateTotalSec);
-        const dateIndo = formatIndoDateStr(dateStr);
-        const hoursDec = Math.round((dateTotalSec / 3600) * 100) / 100;
-
-        rawLines.push(`• Tanggal ${dateStr} (${dateIndo}) > ${dateTotalHMS} (${dateTotalIndo})`);
-
-        summaryPerDate.push({
-          date: dateStr,
-          date_indo: dateIndo,
-          total_hms: dateTotalHMS,
-          total_indo: dateTotalIndo,
-          total_hours: hoursDec,
-          total_seconds: dateTotalSec,
-          file_count: items.length,
-          start_time: firstStartStr,
-          end_time: lastEndStr
-        });
-
-        const itemsData = items.map((it, idx) => ({
-          index: idx + 1,
-          file: it.file,
-          duration: formatHMSFromSec(it.duration_seconds),
-          duration_indo: formatIndoDurationSec(it.duration_seconds),
-          duration_seconds: it.duration_seconds,
-          start: formatTimeHHMMSS(it.start),
-          end: formatTimeHHMMSS(it.end)
-        }));
-
-        formattedGroups.push({
-          date: dateStr,
-          date_indo: dateIndo,
-          total_hms: dateTotalHMS,
-          total_indo: dateTotalIndo,
-          total_hours: hoursDec,
-          total_seconds: dateTotalSec,
-          file_count: items.length,
-          start_time: firstStartStr,
-          end_time: lastEndStr,
-          items: itemsData
-        });
-      }
-
-      const minDate = datesList[0].split('-')[2];
-      const maxDate = datesList[datesList.length - 1].split('-')[2];
-      const rangeLabel = minDate === maxDate ? minDate : `${minDate}-${maxDate}`;
-      const grandTotalHMS = formatHMSFromSec(grandTotalSeconds);
-      const grandTotalHours = Math.round((grandTotalSeconds / 3600) * 100) / 100;
-      const grandTotalIndo = formatIndoDurationSec(grandTotalSeconds);
-
-      rawLines.push("----------------------------------------");
-      rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS} (${grandTotalHours} jam | ${grandTotalIndo})\n`);
-      rawLines.push("=== DETAIL PER TANGGAL & FILE ===");
-
-      formattedGroups.forEach(g => {
-        rawLines.push(`\ntanggal ${g.date} (${g.date_indo}) > ${g.total_hms}`);
-        g.items.forEach(it => {
-          rawLines.push(`   ${it.index}. ${it.duration} (${it.start} - ${it.end}) [File: ${it.file}]`);
-        });
-      });
-
-      rawLines.push("\n" + "=".repeat(40));
-      rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS}`);
-      const rawText = rawLines.join('\n');
-
-      scanData = {
-        success: true,
-        target_folder: dirHandle.name,
-        found_files: foundFiles,
-        dates_count: datesList.length,
-        range_label: rangeLabel,
-        grand_total_hms: grandTotalHMS,
-        grand_total_hours: grandTotalHours,
-        grand_total_indo: grandTotalIndo,
-        summary_per_date: summaryPerDate,
-        groups: formattedGroups,
-        raw_text: rawText
-      };
-
-      lastRawText = rawText;
-
-      // Update UI
-      document.getElementById('statGrandTotal').textContent = grandTotalHMS;
-      document.getElementById('statGrandHours').textContent = `${grandTotalHours} Jam`;
-      document.getElementById('statRange').textContent = `Total ${rangeLabel}`;
-      document.getElementById('statFilesCount').textContent = `${foundFiles} File`;
-      document.getElementById('codeOutput').textContent = rawText;
-
-      renderDateTabs(summaryPerDate);
-      renderDailySummaryTable(summaryPerDate);
-
-      if (summaryPerDate.length > 0) {
-        switchDateTab(summaryPerDate[summaryPerDate.length - 1].date);
-      } else {
-        switchDateTab('ALL');
-      }
-
-      resultCard.style.display = 'block';
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      await readEntries(dirHandle, dirHandle.name);
+      await processEncAndJsonMaps(encFiles, jsonFiles, dirHandle.name, filterCode);
 
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -1231,7 +1284,9 @@
   }
 
   // ==============================================================
-  // METODE 2: SCAN VIA BACKEND PYTHON LOKAL
+  // METODE 2: SCAN KAMERA BERDASARKAN KODE
+  // Di Web Online (Vercel): Otomatis memicu pemilihan folder kamera
+  // Di Lokal: Memindai drive secara otomatis via Python server
   // ==============================================================
   async function executeBackendScan() {
     const code = document.getElementById('camCode').value.trim();
@@ -1249,12 +1304,24 @@
       return;
     }
 
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isFile = window.location.protocol === 'file:';
+
+    // JIKA DIAKSES DARI WEB ONLINE (VERCEL / CLOUD):
+    // Browser di web online secara keamanan tidak bisa menelusuri hard disk laptop tanpa izin folder.
+    // Langsung arahkan ke pemilihan folder untuk kamera atlascm[code]!
+    if (!isLocalhost && !isFile) {
+      await executeBrowserScan(code);
+      return;
+    }
+
+    // JIKA DIAKSES SECARA LOKAL (LOCALHOST / PYTHON SERVER):
     scanBtn.disabled = true;
     btnText.textContent = "Mencari...";
 
     try {
       let apiUrl = `/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
-      if (window.location.protocol === 'file:') {
+      if (isFile) {
         apiUrl = `http://localhost:8000/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
       }
 
@@ -1267,6 +1334,11 @@
         } else {
           throw e1;
         }
+      }
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        throw new Error("Backend server Python lokal tidak aktif atau respons bukan JSON.");
       }
 
       const data = await res.json();
@@ -1306,7 +1378,7 @@
         `Kendala koneksi backend: ${err.message}.\n\n` +
         `💡 CARA PALING MUDAH (TANPA PYTHON):\n` +
         `Gunakan tombol "Pilih Folder SD Card / Kamera" di atas atau tombol di bawah ini.\n\n` +
-        `Jika ingin fitur "Scan Otomatis" berfungsi:\n` +
+        `Jika ingin fitur "Scan Otomatis Seluruh Drive":\n` +
         `• Pastikan server backend sudah berjalan via "start_web_app.bat" (http://localhost:8000).`,
         true
       );
@@ -1569,6 +1641,20 @@
     alertBox.style.display = 'block';
   }
 
+  function adjustUiForEnvironment() {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isFile = window.location.protocol === 'file:';
+    if (!isLocalhost && !isFile) {
+      const badge = document.querySelector('.badge-status span:last-child');
+      if (badge) badge.textContent = "🌐 Web Cloud Production (Aman & Instan)";
+      const scanDesc = document.getElementById('scanMode2Desc');
+      if (scanDesc) {
+        scanDesc.textContent = "Masukkan 4 digit nomor kamera (misal: 3374), lalu klik Scan untuk memilih folder kamera tersebut di SD Card Anda.";
+      }
+    }
+  }
+
+  adjustUiForEnvironment();
   loadSavedProfile();
 </script>
 
