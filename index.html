@@ -135,6 +135,89 @@
       gap: 8px;
     }
 
+    /* STATUS BAR AKSES SD CARD / PERMISSION */
+    .sd-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: rgba(13, 19, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      transition: var(--transition);
+    }
+
+    .sd-status-bar.connected {
+      border-color: rgba(52, 211, 153, 0.45);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .sd-status-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sd-status-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .sd-status-dot.green {
+      background: #10b981;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.85);
+    }
+
+    .btn-sd-connect {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-sd-connect:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      transform: translateY(-1px);
+    }
+
+    .btn-sd-change {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-sd-change:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
     /* PILIHAN MODE SCAN */
     .scan-modes-box {
       display: grid;
@@ -716,24 +799,43 @@
   <section class="card-panel">
     <div class="section-title">
       <span>🚀</span>
-      <span>Pilih Metode Pemindaian SD Card</span>
+      <span>Pemindaian SD Card & Kamera</span>
+    </div>
+
+    <!-- STATUS AKSES KARTU SD (IZIN BROWSER) -->
+    <div class="sd-status-bar" id="sdStatusBar">
+      <div class="sd-status-info">
+        <span class="sd-status-dot" id="sdStatusDot"></span>
+        <div>
+          <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Akses SD Card (Izin Browser Laptop):</div>
+          <div id="sdStatusText" style="font-size: 13px; font-weight: 700; color: #f1f5f9;">Belum Dihubungkan (Perlu Izin Akses Folder)</div>
+        </div>
+      </div>
+      <div class="sd-status-actions">
+        <button type="button" class="btn-sd-connect" id="btnConnectSD" onclick="handleConnectSDCard()">
+          <span>🔌 Beri Izin & Hubungkan SD Card</span>
+        </button>
+        <button type="button" class="btn-sd-change" id="btnChangeSD" onclick="handleChangeSDCard()" style="display: none;">
+          <span>🔄 Ganti SD Card</span>
+        </button>
+      </div>
     </div>
 
     <div class="scan-modes-box">
-      <!-- METODE 1: BROWSER DIRECT (BISA DI PUBLISH KE INTERNET) -->
+      <!-- METODE 1: BROWSER DIRECT -->
       <div class="mode-card primary">
         <div>
           <div style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
             <span>🌐</span>
-            <span>Buka Langsung SD Card (Paling Mudah)</span>
+            <span>Buka SD Card / Folder Manual</span>
           </div>
           <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-            Cocok saat dibuka di web internet publik. Browser di laptop Anda/teman Anda akan langsung membaca metadata SD Card secara lokal tanpa upload!
+            Pilih folder SD Card atau folder kamera secara manual jika ingin langsung memindai tanpa filter kode.
           </p>
         </div>
         <button class="btn-folder-pick" id="btnBrowseFolder" onclick="executeBrowserScan()">
           <span>📁</span>
-          <span>Pilih Folder SD Card / Kamera</span>
+          <span>Pilih Folder SD Card Manual</span>
         </button>
       </div>
 
@@ -742,10 +844,10 @@
         <div>
           <div style="font-size: 14px; font-weight: 800; color: #93c5fd; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
             <span>⚡</span>
-            <span>Cari Berdasarkan Seri Kamera</span>
+            <span>Scan Otomatis Berdasarkan Kode Kamera</span>
           </div>
           <p id="scanMode2Desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-            Gunakan 4 digit seri kamera (misal: 3047) untuk memindai otomatis file rekaman kamera tersebut.
+            Ketik 4 digit nomor seri kamera (misal: 3374) -> klik Scan Otomatis. Sistem akan otomatis mencari dan merekap file kamera tersebut!
           </p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
@@ -1213,10 +1315,189 @@
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  // ==============================================================
+  // SISTEM IZIN & PENYIMPANAN HANDLE SD CARD (INDEXEDDB)
+  // Memungkinkan web browser mengingat kartu SD tanpa pilih ulang!
+  // ==============================================================
+  const IDB_NAME = 'MyRobinDurationDB';
+  const IDB_STORE = 'handles';
+  let currentSDHandle = null;
+
+  function getIDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function saveDirectoryHandle(handle) {
+    try {
+      const db = await getIDB();
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(handle, 'activeSDCard');
+      return new Promise((res) => {
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => res(false);
+      });
+    } catch (e) {
+      console.warn("Gagal simpan handle ke IndexedDB:", e);
+      return false;
+    }
+  }
+
+  async function getSavedDirectoryHandle() {
+    try {
+      const db = await getIDB();
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get('activeSDCard');
+      return new Promise((res) => {
+        req.onsuccess = () => res(req.result || null);
+        req.onerror = () => res(null);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function clearSavedDirectoryHandle() {
+    try {
+      const db = await getIDB();
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete('activeSDCard');
+      return new Promise((res) => {
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => res(false);
+      });
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function verifyPermission(handle) {
+    if (!handle) return false;
+    try {
+      const status = await handle.queryPermission({ mode: 'read' });
+      if (status === 'granted') return true;
+      const req = await handle.requestPermission({ mode: 'read' });
+      return req === 'granted';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function checkAndRestoreSDCardStatus() {
+    if (!window.showDirectoryPicker) {
+      const text = document.getElementById('sdStatusText');
+      if (text) text.innerHTML = "Browser ini menggunakan mode pemilih manual";
+      return;
+    }
+
+    try {
+      const savedHandle = await getSavedDirectoryHandle();
+      if (savedHandle) {
+        currentSDHandle = savedHandle;
+        setSDCardConnectedUI(savedHandle.name);
+      } else {
+        setSDCardDisconnectedUI();
+      }
+    } catch (e) {
+      setSDCardDisconnectedUI();
+    }
+  }
+
+  function setSDCardConnectedUI(folderName) {
+    const bar = document.getElementById('sdStatusBar');
+    const dot = document.getElementById('sdStatusDot');
+    const text = document.getElementById('sdStatusText');
+    const btnConnect = document.getElementById('btnConnectSD');
+    const btnChange = document.getElementById('btnChangeSD');
+
+    if (bar) bar.classList.add('connected');
+    if (dot) dot.classList.add('green');
+    if (text) text.innerHTML = `🟢 Terhubung ke: <strong>${folderName}</strong> <span style="font-size: 11px; color: #34d399; font-weight: normal;">(Izin Aktif - Siap Scan Otomatis)</span>`;
+    if (btnConnect) btnConnect.style.display = 'none';
+    if (btnChange) btnChange.style.display = 'inline-flex';
+  }
+
+  function setSDCardDisconnectedUI() {
+    const bar = document.getElementById('sdStatusBar');
+    const dot = document.getElementById('sdStatusDot');
+    const text = document.getElementById('sdStatusText');
+    const btnConnect = document.getElementById('btnConnectSD');
+    const btnChange = document.getElementById('btnChangeSD');
+
+    if (bar) bar.classList.remove('connected');
+    if (dot) dot.classList.remove('green');
+    if (text) text.innerHTML = `Belum Diberi Izin Akses <span style="font-size: 11px; color: #f59e0b; font-weight: normal;">(Cukup beri izin 1x, browser akan mengingatnya)</span>`;
+    if (btnConnect) btnConnect.style.display = 'inline-flex';
+    if (btnChange) btnChange.style.display = 'none';
+  }
+
+  async function handleConnectSDCard() {
+    if (!window.showDirectoryPicker) {
+      showAlert("Browser Anda tidak mendukung File System Access API. Silakan gunakan Google Chrome atau Microsoft Edge di PC/Laptop.");
+      return null;
+    }
+
+    try {
+      const dirHandle = await window.showDirectoryPicker();
+      currentSDHandle = dirHandle;
+      await saveDirectoryHandle(dirHandle);
+      setSDCardConnectedUI(dirHandle.name);
+      showToast(`✅ SD Card / Folder "${dirHandle.name}" terhubung! Izin telah tersimpan.`);
+      return dirHandle;
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        showAlert(`Kendala saat menghubungkan folder: ${err.message}`);
+      }
+      return null;
+    }
+  }
+
+  async function handleChangeSDCard() {
+    await clearSavedDirectoryHandle();
+    currentSDHandle = null;
+    setSDCardDisconnectedUI();
+    const handle = await handleConnectSDCard();
+    if (handle) {
+      const code = document.getElementById('camCode').value.trim();
+      if (code && code.length === 4) {
+        await scanFromDirectoryHandle(handle, code);
+      }
+    }
+  }
+
+  async function scanFromDirectoryHandle(handle, filterCode = "") {
+    const encFiles = {}; // baseUUID -> { file, path }
+    const jsonFiles = {}; // baseUUID -> { file, path }
+
+    async function readEntries(h, currentPath = "") {
+      for await (const entry of h.values()) {
+        const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+        if (entry.kind === 'file') {
+          const name = entry.name;
+          if (name.endsWith('.enc')) {
+            const base = name.replace('.mcap.enc', '').replace('.enc', '');
+            encFiles[base] = { file: await entry.getFile(), path: entryPath };
+          } else if (name.endsWith('.json') && !name.endsWith('-meta.json')) {
+            const base = name.replace('.json', '');
+            jsonFiles[base] = { file: await entry.getFile(), path: entryPath };
+          }
+        } else if (entry.kind === 'directory') {
+          await readEntries(entry, entryPath);
+        }
+      }
+    }
+
+    await readEntries(handle, handle.name);
+    await processEncAndJsonMaps(encFiles, jsonFiles, handle.name, filterCode);
+  }
+
   async function executeBrowserScan(filterCode = "") {
     const alertBox = document.getElementById('alertBox');
     const locationBadge = document.getElementById('locationBadge');
-    const resultCard = document.getElementById('resultCard');
 
     alertBox.style.display = 'none';
     locationBadge.style.display = 'none';
@@ -1251,31 +1532,9 @@
     }
 
     try {
-      const dirHandle = await window.showDirectoryPicker();
-      const encFiles = {}; // baseUUID -> { file, path }
-      const jsonFiles = {}; // baseUUID -> { file, path }
-
-      async function readEntries(handle, currentPath = "") {
-        for await (const entry of handle.values()) {
-          const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
-          if (entry.kind === 'file') {
-            const name = entry.name;
-            if (name.endsWith('.enc')) {
-              const base = name.replace('.mcap.enc', '').replace('.enc', '');
-              encFiles[base] = { file: await entry.getFile(), path: entryPath };
-            } else if (name.endsWith('.json') && !name.endsWith('-meta.json')) {
-              const base = name.replace('.json', '');
-              jsonFiles[base] = { file: await entry.getFile(), path: entryPath };
-            }
-          } else if (entry.kind === 'directory') {
-            await readEntries(entry, entryPath);
-          }
-        }
-      }
-
-      await readEntries(dirHandle, dirHandle.name);
-      await processEncAndJsonMaps(encFiles, jsonFiles, dirHandle.name, filterCode);
-
+      const dirHandle = await handleConnectSDCard();
+      if (!dirHandle) return;
+      await scanFromDirectoryHandle(dirHandle, filterCode);
     } catch (err) {
       if (err.name !== 'AbortError') {
         showAlert(`Kendala saat memindai folder: ${err.message}`);
@@ -1285,7 +1544,7 @@
 
   // ==============================================================
   // METODE 2: SCAN KAMERA BERDASARKAN KODE
-  // Di Web Online (Vercel): Otomatis memicu pemilihan folder kamera
+  // Di Web Online (Vercel): Membaca otomatis dari SD Card yang berizin
   // Di Lokal: Memindai drive secara otomatis via Python server
   // ==============================================================
   async function executeBackendScan() {
@@ -1307,11 +1566,40 @@
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const isFile = window.location.protocol === 'file:';
 
-    // JIKA DIAKSES DARI WEB ONLINE (VERCEL / CLOUD):
-    // Browser di web online secara keamanan tidak bisa menelusuri hard disk laptop tanpa izin folder.
-    // Langsung arahkan ke pemilihan folder untuk kamera atlascm[code]!
+    // JIKA DIAKSES DARI WEB ONLINE (VERCEL / LAPTOP TEMAN):
     if (!isLocalhost && !isFile) {
-      await executeBrowserScan(code);
+      scanBtn.disabled = true;
+      btnText.textContent = "Scanning...";
+
+      try {
+        let handle = currentSDHandle || await getSavedDirectoryHandle();
+        let hasPerm = false;
+
+        if (handle) {
+          hasPerm = await verifyPermission(handle);
+        }
+
+        // Jika belum ada kartu SD terhubung atau izin belum aktif, minta izin 1x
+        if (!handle || !hasPerm) {
+          handle = await handleConnectSDCard();
+          if (!handle) {
+            scanBtn.disabled = false;
+            btnText.textContent = "Scan Otomatis";
+            return;
+          }
+        }
+
+        // Scan otomatis secara instan dari SD Card yang tersimpan!
+        await scanFromDirectoryHandle(handle, code);
+
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showAlert(`Kendala saat memindai: ${err.message}`);
+        }
+      } finally {
+        scanBtn.disabled = false;
+        btnText.textContent = "Scan Otomatis";
+      }
       return;
     }
 
@@ -1377,7 +1665,7 @@
       showAlert(
         `Kendala koneksi backend: ${err.message}.\n\n` +
         `💡 CARA PALING MUDAH (TANPA PYTHON):\n` +
-        `Gunakan tombol "Pilih Folder SD Card / Kamera" di atas atau tombol di bawah ini.\n\n` +
+        `Gunakan tombol "Beri Izin & Hubungkan SD Card" di atas untuk menghubungkan kartu SD kamera Anda sekali saja.\n\n` +
         `Jika ingin fitur "Scan Otomatis Seluruh Drive":\n` +
         `• Pastikan server backend sudah berjalan via "start_web_app.bat" (http://localhost:8000).`,
         true
@@ -1646,12 +1934,9 @@
     const isFile = window.location.protocol === 'file:';
     if (!isLocalhost && !isFile) {
       const badge = document.querySelector('.badge-status span:last-child');
-      if (badge) badge.textContent = "🌐 Web Cloud Production (Aman & Instan)";
-      const scanDesc = document.getElementById('scanMode2Desc');
-      if (scanDesc) {
-        scanDesc.textContent = "Masukkan 4 digit nomor kamera (misal: 3374), lalu klik Scan untuk memilih folder kamera tersebut di SD Card Anda.";
-      }
+      if (badge) badge.textContent = "🌐 Web Cloud Production (Siap Digunakan di Laptop Manapun)";
     }
+    checkAndRestoreSDCardStatus();
   }
 
   adjustUiForEnvironment();
