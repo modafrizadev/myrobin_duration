@@ -1612,8 +1612,8 @@
 
     let encKeys = Object.keys(encFiles);
     if (encKeys.length === 0) {
-      showAlert(`Folder "${folderName}" berhasil dibuka, tetapi tidak ditemukan file berekstensi .enc di dalamnya.`);
-      resultCard.style.display = 'none';
+      showAlert(`Kartu SD / folder "${folderName}" berhasil diakses, tetapi tidak ditemukan file rekaman (.enc) di dalamnya.`);
+      if (resultCard) resultCard.style.display = 'none';
       return;
     }
 
@@ -1630,6 +1630,10 @@
       if (matchedKeys.length > 0) {
         encKeys = matchedKeys;
         isFiltered = true;
+      } else {
+        showAlert(`Tidak ditemukan file rekaman untuk kamera "atlascm${filterCode}" di dalam folder "${folderName}". Ditemukan ${encKeys.length} file rekaman lain di kartu SD.`);
+        if (resultCard) resultCard.style.display = 'none';
+        return;
       }
     }
 
@@ -1750,6 +1754,12 @@
         end_time: lastEndStr,
         items: itemsData
       });
+    }
+
+    if (datesList.length === 0) {
+      showAlert(`Tidak ada data rekaman valid yang dapat dihitung dari folder "${folderName}".`);
+      if (resultCard) resultCard.style.display = 'none';
+      return;
     }
 
     const minDate = datesList[0].split('-')[2];
@@ -1974,21 +1984,64 @@
     const encFiles = {}; // baseUUID -> { file, path }
     const jsonFiles = {}; // baseUUID -> { file, path }
 
+    const IGNORED_DIRS = new Set([
+      'system volume information',
+      '$recycle.bin',
+      '$recyle.bin',
+      'found.000',
+      'found.001',
+      '.trash',
+      '.trashes',
+      '.spotlight-v100',
+      '.fseventsd',
+      '.git',
+      '.gemini',
+      'node_modules',
+      'recovery'
+    ]);
+
     async function readEntries(h, currentPath = "") {
-      for await (const entry of h.values()) {
-        const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
-        if (entry.kind === 'file') {
-          const name = entry.name;
-          if (name.endsWith('.enc')) {
-            const base = name.replace('.mcap.enc', '').replace('.enc', '');
-            encFiles[base] = { file: await entry.getFile(), path: entryPath };
-          } else if (name.endsWith('.json') && !name.endsWith('-meta.json')) {
-            const base = name.replace('.json', '');
-            jsonFiles[base] = { file: await entry.getFile(), path: entryPath };
+      try {
+        for await (const entry of h.values()) {
+          try {
+            const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+            const lowerName = entry.name.toLowerCase();
+
+            if (entry.kind === 'file') {
+              if (lowerName.endsWith('.enc')) {
+                const base = entry.name.replace('.mcap.enc', '').replace('.enc', '');
+                try {
+                  const fileObj = await entry.getFile();
+                  encFiles[base] = { file: fileObj, path: entryPath };
+                } catch (fileErr) {
+                  console.warn(`File tidak dapat dibaca (${entryPath}):`, fileErr);
+                }
+              } else if (lowerName.endsWith('.json') && !lowerName.endsWith('-meta.json')) {
+                const base = entry.name.replace('.json', '');
+                try {
+                  const fileObj = await entry.getFile();
+                  jsonFiles[base] = { file: fileObj, path: entryPath };
+                } catch (fileErr) {
+                  console.warn(`File metadata tidak dapat dibaca (${entryPath}):`, fileErr);
+                }
+              }
+            } else if (entry.kind === 'directory') {
+              // Abaikan folder sistem Windows dan folder tersembunyi
+              if (IGNORED_DIRS.has(lowerName) || lowerName.startsWith('$') || lowerName.startsWith('.')) {
+                continue;
+              }
+              try {
+                await readEntries(entry, entryPath);
+              } catch (subErr) {
+                console.warn(`Folder tidak dapat dibuka (${entryPath}):`, subErr);
+              }
+            }
+          } catch (itemErr) {
+            console.warn(`Item tidak dapat diakses di ${currentPath}:`, itemErr);
           }
-        } else if (entry.kind === 'directory') {
-          await readEntries(entry, entryPath);
         }
+      } catch (dirErr) {
+        console.warn(`Direktori tidak dapat dibaca (${currentPath}):`, dirErr);
       }
     }
 
@@ -2033,7 +2086,14 @@
     }
 
     try {
-      const dirHandle = await handleConnectSDCard();
+      let dirHandle = currentSDHandle;
+      if (!dirHandle) {
+        dirHandle = await getSavedDirectoryHandle();
+        if (dirHandle) currentSDHandle = dirHandle;
+      }
+      if (!dirHandle) {
+        dirHandle = await handleConnectSDCard();
+      }
       if (!dirHandle) return;
       await scanFromDirectoryHandle(dirHandle, filterCode);
     } catch (err) {
@@ -2069,24 +2129,30 @@
 
     // 1. CARA UTAMA (CLIENT-SIDE): Gunakan SD Card yang sudah diberi izin langsung di browser
     if (window.showDirectoryPicker) {
-      try {
-        let handle = currentSDHandle || await getSavedDirectoryHandle();
-        let hasPerm = false;
-
+      let handle = currentSDHandle;
+      if (!handle) {
+        handle = await getSavedDirectoryHandle();
         if (handle) {
-          hasPerm = await verifyPermission(handle);
+          currentSDHandle = handle;
         }
+      }
 
-        // Jika belum ada kartu SD terhubung atau izin belum aktif, minta izin 1x
-        if (!handle || !hasPerm) {
-          handle = await handleConnectSDCard();
-          if (!handle) {
-            scanBtn.disabled = false;
-            btnText.textContent = "Scan Otomatis";
-            return;
-          }
+      let hasPerm = false;
+      if (handle) {
+        hasPerm = await verifyPermission(handle);
+      }
+
+      // Jika belum ada kartu SD terhubung atau izin belum aktif, minta izin 1x
+      if (!handle || !hasPerm) {
+        handle = await handleConnectSDCard();
+        if (!handle) {
+          scanBtn.disabled = false;
+          btnText.textContent = "Scan Otomatis";
+          return;
         }
+      }
 
+      try {
         // Pindai file atlascm{code} secara instan dari kartu SD
         await scanFromDirectoryHandle(handle, code);
         scanBtn.disabled = false;
@@ -2094,13 +2160,14 @@
         return;
 
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.warn("Scan direct handle gagal, mencoba alternatif:", err);
-        } else {
-          scanBtn.disabled = false;
-          btnText.textContent = "Scan Otomatis";
+        scanBtn.disabled = false;
+        btnText.textContent = "Scan Otomatis";
+        if (err.name === 'AbortError') {
           return;
         }
+        console.error("Scan direct handle gagal:", err);
+        showAlert(`Kendala saat memindai Kartu SD "${handle.name}": ${err.message || err}`);
+        return;
       }
     }
 
@@ -2746,6 +2813,12 @@
         items: uniqueItems
       });
     });
+
+    if (datesList.length === 0) {
+      showAlert(`Tidak ada data rekaman valid yang dapat dihitung dari folder "${folderName}".`);
+      if (resultCard) resultCard.style.display = 'none';
+      return;
+    }
 
     const minDate = datesList[0].split('-')[2];
     const maxDate = datesList[datesList.length - 1].split('-')[2];
