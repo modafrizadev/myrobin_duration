@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Atlas Capture QA Auto-Reporter to Google Sheets
 // @namespace    https://studio.atlascapture.io/
-// @version      1.0.0
+// @version      1.1.0
 // @description  Ekstraksi otomatis data Rejection QA Atlas Capture dan sinkronisasi ke Google Spreadsheet
 // @author       Antigravity
 // @match        https://studio.atlascapture.io/*
@@ -40,6 +40,20 @@
       return originalClipboardWriteText.apply(this, arguments);
     };
   }
+
+  // ==========================================
+  // IKON HEROICONS SVG (BEBAS EMOTE / EMOJI)
+  // ==========================================
+  const ICONS = {
+    sync: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>',
+    cog: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+    documentPlus: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+    cloudUp: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16l-4-4-4 4"/><path d="M12 12v9"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>',
+    clipboard: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
+    eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    alert: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+  };
 
   // ==========================================
   // HELPER PENGAMBIL DATA (DOM SCRAPING)
@@ -87,7 +101,7 @@
   /**
    * Ekstraksi Submit Date
    * Target contoh: "Mulyatinah · Business / Multicam · Oct 15, 2026 7:47 AM"
-   * Output yang diminta: " Multicam · Oct 15, 2026 7:47 AM"
+   * Output yang diminta: "Multicam · Oct 15, 2026 7:47 AM"
    */
   function extractSubmitDate(container = document) {
     const el = container.querySelector('div.text-\\[10px\\].text-gray-500, div.text-gray-500.truncate') 
@@ -234,7 +248,7 @@
       const webhookUrl = GM_getValue(STORAGE_KEYS.WEBHOOK_URL, '');
 
       if (!webhookUrl || !webhookUrl.startsWith('https://script.google.com')) {
-        reject(new Error('URL Webhook Google Apps Script belum diisi di Pengaturan!'));
+        reject(new Error('URL Webhook Google Apps Script belum diisi di Pengaturan.'));
         return;
       }
 
@@ -262,7 +276,7 @@
           } catch (e) {
             // Kadang Apps Script redirect 302 dan berhasil
             if (response.status >= 200 && response.status < 400) {
-              resolve({ status: 'success', message: 'Data terkirim!' });
+              resolve({ status: 'success', message: 'Data terkirim.' });
             } else {
               reject(new Error('Respon tidak valid dari server Google: ' + response.responseText));
             }
@@ -303,6 +317,7 @@
 
   // ==========================================
   // USER INTERFACE (FLOATING WIDGET)
+  // DESIGN SYSTEM SESUAI MYROBIN APPS
   // ==========================================
 
   function createFloatingUI() {
@@ -316,48 +331,66 @@
         bottom: 24px;
         right: 24px;
         z-index: 999999;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         font-size: 13px;
-        color: #f1f5f9;
+        color: #111827;
       }
       .aqa-card {
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #FFFFFF;
+        border: 1.5px solid #E5DEC9;
         border-radius: 14px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-        width: 310px;
+        box-shadow: 0 12px 32px rgba(27, 77, 75, 0.16), 0 2px 6px rgba(0, 0, 0, 0.05);
+        width: 320px;
         overflow: hidden;
         transition: all 0.25s ease;
       }
       .aqa-header {
         padding: 12px 16px;
-        background: linear-gradient(135deg, #1e3a8a, #0f172a);
+        background: #FAF8EE;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid #E5DEC9;
       }
       .aqa-title {
         font-weight: 700;
-        font-size: 13px;
+        font-size: 13.5px;
         display: flex;
         align-items: center;
-        gap: 6px;
-        color: #60a5fa;
+        gap: 8px;
+        color: #1B4D4B;
       }
       .aqa-badge {
-        font-size: 10px;
-        background: #2563eb;
-        color: #fff;
-        padding: 2px 6px;
-        border-radius: 10px;
+        font-size: 10.5px;
+        font-weight: 600;
+        background: #F4EFE6;
+        color: #1B4D4B;
+        border: 1px solid #E5DEC9;
+        padding: 2px 8px;
+        border-radius: 9999px;
+      }
+      .aqa-btn-icon {
+        background: none;
+        border: none;
+        color: #64748B;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border-radius: 6px;
+        transition: color 0.15s ease, background-color 0.15s ease;
+      }
+      .aqa-btn-icon:hover {
+        color: #1B4D4B;
+        background-color: #EFE9D9;
       }
       .aqa-body {
         padding: 14px 16px;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        background: #FFFFFF;
       }
       .aqa-btn {
         display: flex;
@@ -365,7 +398,7 @@
         justify-content: center;
         gap: 8px;
         width: 100%;
-        padding: 8px 12px;
+        padding: 9px 12px;
         border-radius: 8px;
         border: none;
         font-weight: 600;
@@ -374,27 +407,30 @@
         transition: all 0.15s ease;
       }
       .aqa-btn-primary {
-        background: #2563eb;
-        color: #ffffff;
+        background: #1B4D4B;
+        color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(27, 77, 75, 0.2);
       }
       .aqa-btn-primary:hover {
-        background: #1d4ed8;
+        background: #133A38;
       }
-      .aqa-btn-emerald {
-        background: #059669;
-        color: #ffffff;
+      .aqa-btn-bulk {
+        background: #3AA39E;
+        color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(58, 163, 158, 0.2);
       }
-      .aqa-btn-emerald:hover {
-        background: #047857;
+      .aqa-btn-bulk:hover {
+        background: #2D8581;
       }
       .aqa-btn-secondary {
-        background: rgba(255, 255, 255, 0.08);
-        color: #cbd5e1;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #FAF8F2;
+        color: #111827;
+        border: 1px solid #E5DEC9;
       }
       .aqa-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.15);
-        color: #ffffff;
+        background: #F1ECE0;
+        border-color: #1B4D4B;
+        color: #1B4D4B;
       }
       .aqa-btn:disabled {
         opacity: 0.5;
@@ -404,52 +440,66 @@
         display: flex;
         gap: 8px;
       }
+      .aqa-actions-row .aqa-btn {
+        flex: 1;
+      }
       .aqa-status-box {
-        font-size: 11px;
-        color: #94a3b8;
-        padding: 6px 10px;
-        background: rgba(0, 0, 0, 0.3);
+        font-size: 11.5px;
+        color: #475569;
+        padding: 8px 10px;
+        background: #FBF8EE;
         border-radius: 6px;
-        border-left: 3px solid #3b82f6;
+        border: 1px solid #E5DEC9;
+        border-left: 3.5px solid #3AA39E;
         word-break: break-word;
+        line-height: 1.4;
       }
       .aqa-toast {
         position: fixed;
         bottom: 90px;
         right: 24px;
-        background: #1e293b;
-        color: #fff;
+        background: #14532D;
+        color: #FFFFFF;
         padding: 10px 16px;
         border-radius: 8px;
         font-size: 12.5px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        font-weight: 500;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
         display: none;
         z-index: 1000000;
-        border-left: 4px solid #10b981;
+        border-left: 4px solid #4ADE80;
+        max-width: 320px;
+        line-height: 1.4;
       }
       .aqa-settings-modal {
         display: none;
         padding: 14px 16px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(0, 0, 0, 0.4);
+        border-top: 1px solid #E5DEC9;
+        background: #FAF8F2;
       }
       .aqa-input-group {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        margin-bottom: 8px;
+        gap: 5px;
+        margin-bottom: 10px;
       }
       .aqa-input-group label {
         font-size: 11px;
-        color: #94a3b8;
+        font-weight: 600;
+        color: #475569;
       }
       .aqa-input-group input {
-        background: #0f172a;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        padding: 6px 8px;
+        background: #FFFFFF;
+        border: 1px solid #D6CDC0;
+        color: #111827;
+        padding: 7px 9px;
         border-radius: 6px;
         font-size: 11.5px;
+        outline: none;
+        transition: border-color 0.15s ease;
+      }
+      .aqa-input-group input:focus {
+        border-color: #1B4D4B;
       }
     `;
     document.head.appendChild(style);
@@ -462,27 +512,34 @@
       <div class="aqa-card" id="aqa-card">
         <div class="aqa-header">
           <div class="aqa-title">
-            <span>⚡ Atlas QA Sync</span>
-            <span class="aqa-badge" id="aqa-badge-status">Ready</span>
+            <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.sync}</span>
+            <span>Atlas QA Sync</span>
+            <span class="aqa-badge" id="aqa-badge-status">Siap</span>
           </div>
-          <button id="aqa-btn-toggle-settings" style="background:none; border:none; color:#94a3b8; cursor:pointer;" title="Pengaturan Webhook">⚙️</button>
+          <button id="aqa-btn-toggle-settings" class="aqa-btn-icon" title="Pengaturan Webhook">
+            ${ICONS.cog}
+          </button>
         </div>
 
         <div class="aqa-body">
           <button id="aqa-btn-single" class="aqa-btn aqa-btn-primary">
-            📌 Simpan Klip Ini ke Sheet
+            ${ICONS.documentPlus}
+            <span>Simpan Klip Ini ke Sheet</span>
           </button>
           
-          <button id="aqa-btn-bulk" class="aqa-btn aqa-btn-emerald">
-            ⚡ Scan & Kirim Semua Baris
+          <button id="aqa-btn-bulk" class="aqa-btn aqa-btn-bulk">
+            ${ICONS.cloudUp}
+            <span>Pindai & Kirim Semua Baris</span>
           </button>
 
           <div class="aqa-actions-row">
             <button id="aqa-btn-copy-tsv" class="aqa-btn aqa-btn-secondary" title="Salin format tabel spreadsheet">
-              📋 Salin (TSV)
+              ${ICONS.clipboard}
+              <span>Salin (TSV)</span>
             </button>
             <button id="aqa-btn-preview" class="aqa-btn aqa-btn-secondary" title="Lihat pratinjau data yang terdeteksi">
-              🔍 Pratinjau
+              ${ICONS.eye}
+              <span>Pratinjau</span>
             </button>
           </div>
 
@@ -524,7 +581,15 @@
     const toast = document.getElementById('aqa-toast');
     if (!toast) return;
     toast.textContent = msg;
-    toast.style.borderLeftColor = isSuccess ? '#10b981' : '#ef4444';
+    if (isSuccess) {
+      toast.style.background = '#14532D';
+      toast.style.borderLeftColor = '#4ADE80';
+      toast.style.color = '#FFFFFF';
+    } else {
+      toast.style.background = '#991B1B';
+      toast.style.borderLeftColor = '#F87171';
+      toast.style.color = '#FFFFFF';
+    }
     toast.style.display = 'block';
     setTimeout(() => {
       toast.style.display = 'none';
@@ -564,24 +629,24 @@
       GM_setValue(STORAGE_KEYS.SHEET_NAME, inputSheet.value.trim());
       GM_setValue(STORAGE_KEYS.DEFAULT_BIZ, inputBiz.value.trim());
       settingsModal.style.display = 'none';
-      showToast('✅ Pengaturan berhasil disimpan!');
+      showToast('Pengaturan berhasil disimpan.');
       setStatus('Webhook siap digunakan.');
     });
 
     // 1. SIMPAN 1 KLIP AKTIF
     btnSingle.addEventListener('click', async () => {
       btnSingle.disabled = true;
-      setStatus('⏳ Membaca klip yang sedang dibuka...');
+      setStatus('Membaca klip yang sedang dibuka...');
       try {
         const item = await scrapeCurrentItem(document);
-        setStatus(`Kirim data: "${item.taskName}" (${item.rejectionType})...`);
+        setStatus(`Mengirim data: "${item.taskName}" (${item.rejectionType})...`);
         
         await sendToGoogleSheet({ action: 'appendSingle', data: item });
-        showToast(`✅ Berhasil: 1 klip disimpan ke Sheet!`);
-        setStatus(`✅ Tersimpan: ${item.taskName} [${item.duration}]`);
+        showToast('Klip berhasil disimpan ke Google Sheet.');
+        setStatus(`Tersimpan: ${item.taskName} [${item.duration}]`);
       } catch (err) {
-        showToast(`❌ ${err.message}`, false);
-        setStatus(`Error: ${err.message}`);
+        showToast(`Gagal: ${err.message}`, false);
+        setStatus(`Kendala: ${err.message}`);
       } finally {
         btnSingle.disabled = false;
       }
@@ -590,7 +655,7 @@
     // 2. SCAN SEMUA DI HALAMAN (BULK SCAN)
     btnBulk.addEventListener('click', async () => {
       btnBulk.disabled = true;
-      setStatus('⏳ Memindai semua baris/klip di halaman...');
+      setStatus('Memindai semua baris atau klip di halaman...');
       try {
         // Cari baris-baris tabel atau daftar kartu di tab autoEpisodeQA
         let rowsElements = document.querySelectorAll('tbody tr, div[data-agentation-id]');
@@ -620,11 +685,11 @@
         setStatus(`Mengirim ${itemsToSave.length} baris ke Google Sheet...`);
         await sendToGoogleSheet({ action: 'batch', rows: itemsToSave });
 
-        showToast(`✅ Berhasil mengirim ${itemsToSave.length} baris data!`);
-        setStatus(`✅ Selesai: ${itemsToSave.length} baris berhasil masuk ke Sheet.`);
+        showToast(`Berhasil mengirim ${itemsToSave.length} baris data.`);
+        setStatus(`Selesai: ${itemsToSave.length} baris berhasil masuk ke Sheet.`);
       } catch (err) {
-        showToast(`❌ ${err.message}`, false);
-        setStatus(`Error: ${err.message}`);
+        showToast(`Gagal: ${err.message}`, false);
+        setStatus(`Kendala: ${err.message}`);
       } finally {
         btnBulk.disabled = false;
       }
@@ -632,12 +697,12 @@
 
     // 3. SALIN SEBAGAI TSV (CLIPBOARD)
     btnCopyTSV.addEventListener('click', async () => {
-      setStatus('Menyalin format spreadsheet ke clipboard...');
+      setStatus('Menyalin format spreadsheet ke papan klip...');
       try {
         const item = await scrapeCurrentItem(document);
         copyToClipboardAsTSV([item]);
-        showToast('📋 Berhasil disalin! Tinggal Ctrl+V di Google Sheet.');
-        setStatus('Data tersalin ke clipboard (bisa langsung Ctrl+V).');
+        showToast('Data tersalin ke papan klip. Buka Google Sheet dan tekan Ctrl+V.');
+        setStatus('Data tersalin ke papan klip (bisa langsung Ctrl+V).');
       } catch (e) {
         showToast('Gagal menyalin: ' + e.message, false);
       }
@@ -658,7 +723,7 @@
         `9. Dispute note: ${item.disputeNote}\n` +
         `10. Duration: ${item.duration}`;
       
-      alert(`=== HASIL DETEKSI DATA QA ===\n\n${previewText}`);
+      alert(`=== PRATINJAU DATA QA ===\n\n${previewText}`);
       setStatus('Pratinjau data telah ditampilkan.');
     });
   }
