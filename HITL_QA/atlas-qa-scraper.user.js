@@ -1,17 +1,18 @@
 // ==UserScript==
 // @name         Atlas Capture QA Auto-Reporter to Google Sheets
 // @namespace    https://studio.atlascapture.io/
-// @version      1.1.0
-// @description  Ekstraksi otomatis data Rejection QA Atlas Capture dan sinkronisasi ke Google Spreadsheet
+// @version      5.0.0
+// @description  Targeted Precision Date Range Scraper: Support Multi-UMKM Otomatis dari <h1>, Live Progress Ditelusuri & Cocok, Verification Flow, dan Notifikasi Top Banner
 // @author       Antigravity
 // @match        https://studio.atlascapture.io/*
+// @grant        unsafeWindow
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_setClipboard
 // @connect      script.google.com
 // @connect      script.googleusercontent.com
-// @run-at       document-idle
+// @run-at       document-start
 // ==/UserScript==
 
 (function () {
@@ -23,23 +24,23 @@
   const STORAGE_KEYS = {
     WEBHOOK_URL: 'atlas_qa_webhook_url',
     SHEET_NAME: 'atlas_qa_sheet_name',
-    DEFAULT_BIZ: 'atlas_qa_default_biz',
-    SYNCED_LINKS: 'atlas_qa_synced_links'
+    DATE_START: 'atlas_qa_date_start',
+    DATE_END: 'atlas_qa_date_end',
+    CUSTOM_BIZ_NAME: 'atlas_qa_custom_biz_name'
   };
 
-  let lastCopiedLinkFromAtlas = '';
+  const win = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
 
-  // Intercept clipboard writeText agar saat tombol bawaan "Copy Link" diklik (manual/otomatis),
-  // link clip shareable yang dihasilkan Atlas langsung tertangkap 100% akurat.
-  const originalClipboardWriteText = navigator.clipboard ? navigator.clipboard.writeText : null;
-  if (originalClipboardWriteText) {
-    navigator.clipboard.writeText = function (text) {
-      if (typeof text === 'string' && text.includes('atlascapture.io')) {
-        lastCopiedLinkFromAtlas = text;
-      }
-      return originalClipboardWriteText.apply(this, arguments);
-    };
-  }
+  const state = {
+    allEpisodes: new Map(), // Seluruh episode dari DB yang ditelusuri (id -> ep)
+    episodes: new Map(),    // Episode yang cocok dengan filter tanggal (id -> ep)
+    businessId: '',
+    userGroupId: '',
+    businessName: '',       // Diambil langsung dari <h1>
+    bucket: 'P0',
+    isScrapingRunning: false,
+    stopRequested: false
+  };
 
   // ==========================================
   // IKON HEROICONS SVG (BEBAS EMOTE / EMOJI)
@@ -47,206 +48,341 @@
   const ICONS = {
     sync: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>',
     cog: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-    documentPlus: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
-    cloudUp: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16l-4-4-4 4"/><path d="M12 12v9"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>',
+    building: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="22.01"/><line x1="15" y1="22" x2="15" y2="22.01"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="9" y2="18.01"/><line x1="15" y1="18" x2="15" y2="18.01"/></svg>',
+    search: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+    calendar: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
     clipboard: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
-    eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-    check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    alert: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    send: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+    stop: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"/></svg>',
+    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    alert: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+    close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
   };
 
   // ==========================================
-  // HELPER PENGAMBIL DATA (DOM SCRAPING)
+  // HELPER FORMAT & UTILITY (NAMA BISNIS DARI <h1>)
   // ==========================================
 
-  /**
-   * Ekstraksi link klip yang ditolak
-   */
-  async function resolveRejectedClipLink(container = document) {
-    // 1. Cek jika URL di address bar browser sudah memuat parameter episode
-    const currentUrl = window.location.href;
-    if (currentUrl.includes('autoEpisodeQaEpisode=')) {
-      return currentUrl;
-    }
+  // Deteksi nama UMKM langsung dari elemen <h1> (contoh: <h1 class="text-3xl font-bold text-gray-900">Kedai QQ</h1>)
+  function detectBusinessName() {
+    const custom = GM_getValue(STORAGE_KEYS.CUSTOM_BIZ_NAME, '');
+    if (custom) return custom;
 
-    // 2. Jika baru saja ada link yang disalin oleh Atlas ke clipboard
-    if (lastCopiedLinkFromAtlas && lastCopiedLinkFromAtlas.includes('autoEpisodeQaEpisode=')) {
-      return lastCopiedLinkFromAtlas;
-    }
-
-    // 3. Cari tombol "Copy Link" / "Copy shareable page link" dan simulasikan klik
-    const copyBtn = container.querySelector(
-      'button[title*="Copy shareable"], button[title*="Copy Link"], button:has(svg):has(span)'
-    ) || Array.from(container.querySelectorAll('button')).find(b => b.textContent.includes('Copy Link'));
-
-    if (copyBtn) {
-      copyBtn.click();
-      // Beri jeda 150ms agar event handler clipboard Atlas sempat menulis
-      await new Promise(r => setTimeout(r, 150));
-      if (lastCopiedLinkFromAtlas) {
-        return lastCopiedLinkFromAtlas;
+    // 1. Prioritas Utama: Elemen <h1> seperti di halaman Atlas
+    const h1 = document.querySelector('h1[data-agentation-id], h1.text-3xl, h1');
+    if (h1 && h1.textContent.trim()) {
+      const txt = h1.textContent.trim();
+      if (!txt.toLowerCase().includes('dashboard') && !txt.toLowerCase().includes('atlas')) {
+        state.businessName = txt;
+        return txt;
       }
     }
 
-    // 4. Fallback: Cari link atau anchor terdekat yang mengandung format autoEpisodeQaEpisode
-    const anchor = container.querySelector('a[href*="autoEpisodeQaEpisode"]');
-    if (anchor && anchor.href) {
-      return anchor.href;
-    }
-
-    // 5. Fallback terakhir: Kembalikan URL aktif saat ini
-    return currentUrl;
-  }
-
-  /**
-   * Ekstraksi Submit Date
-   * Target contoh: "Mulyatinah · Business / Multicam · Oct 15, 2026 7:47 AM"
-   * Output yang diminta: "Multicam · Oct 15, 2026 7:47 AM"
-   */
-  function extractSubmitDate(container = document) {
-    const el = container.querySelector('div.text-\\[10px\\].text-gray-500, div.text-gray-500.truncate') 
-      || Array.from(container.querySelectorAll('div, span, p')).find(e => 
-          e.textContent.includes('·') && (e.textContent.includes('AM') || e.textContent.includes('PM') || /\d{4}/.test(e.textContent))
-      );
-
-    if (!el) return '-';
-
-    const fullText = el.textContent.trim();
-    const parts = fullText.split('·').map(p => p.trim());
-
-    if (parts.length >= 3) {
-      // Misal parts[0]="Mulyatinah", parts[1]="Business / Multicam", parts[2]="Oct 15, 2026 7:47 AM"
-      let middle = parts[1];
-      if (middle.includes('/')) {
-        middle = middle.split('/').pop().trim(); // Ambil "Multicam"
-      }
-      return `${middle} · ${parts.slice(2).join(' · ')}`;
-    } else if (parts.length === 2) {
-      return parts[1];
-    }
-    return fullText;
-  }
-
-  /**
-   * Ekstraksi Nama Bisnis
-   */
-  function extractBusinessName(container = document) {
-    const defaultBiz = GM_getValue(STORAGE_KEYS.DEFAULT_BIZ, '');
-    if (defaultBiz) return defaultBiz;
-
-    // Coba tebak dari teks info submit: "Mulyatinah · Business / Multicam · ..."
-    const infoEl = container.querySelector('div.text-\\[10px\\].text-gray-500') 
-      || Array.from(container.querySelectorAll('div, span')).find(e => e.textContent.includes('Business /'));
-    if (infoEl && infoEl.textContent.includes('Business /')) {
-      return 'Business';
-    }
-
-    // Coba tebak dari URL: /dashboard/business/69fc6c78...
-    if (window.location.pathname.includes('/business/')) {
-      return 'Business';
-    }
-
-    return 'Atlas Business';
-  }
-
-  /**
-   * Ekstraksi Rejection Type
-   * Target contoh: <span class="... bg-violet-100 ...">Device Usage</span>
-   */
-  function extractRejectionType(container = document) {
-    const badges = container.querySelectorAll(
-      'span.rounded-full[class*="bg-"], span[class*="text-violet"], span[class*="bg-violet"]'
-    );
-    for (const b of badges) {
-      const text = b.textContent.trim();
-      if (text && !text.includes('·') && text.length < 50) {
-        return text;
-      }
-    }
-    return 'Device Usage';
-  }
-
-  /**
-   * Ekstraksi Task Name
-   * Target contoh: <button ... class="... text-blue-600 ...">Business Task · Part 1/30</button>
-   * atau <h3 ...>Business Task · Part 1/30</h3>
-   */
-  function extractTaskName(container = document) {
-    const heading = container.querySelector('h3.text-lg, h3[class*="font-semibold"]');
-    if (heading && heading.textContent.trim()) {
-      return heading.textContent.trim();
-    }
-
-    const taskBtn = container.querySelector('button.text-blue-600, a.text-blue-600, [class*="text-blue-600"]');
-    if (taskBtn && taskBtn.textContent.trim()) {
-      return taskBtn.textContent.trim();
-    }
-
-    return '-';
-  }
-
-  /**
-   * Ekstraksi Durasi
-   * Target contoh: <p class="text-gray-900">1:48</p>
-   */
-  function extractDuration(container = document) {
-    // Regex durasi seperti "1:48" atau "01:23:45"
-    const durationRegex = /^\d{1,2}:\d{2}(:\d{2})?$/;
-
-    // Cari dari tag p atau span di sekitar container
-    const candidates = container.querySelectorAll('p.text-gray-900, p, span');
-    for (const el of candidates) {
-      const text = el.textContent.trim();
-      if (durationRegex.test(text)) {
-        return text;
+    // 2. Fallback: Breadcrumb DOM
+    const breadcrumbLinks = Array.from(document.querySelectorAll('nav a, nav span, header a, header span, div[class*="breadcrumb"] *'));
+    const bizIdx = breadcrumbLinks.findIndex(el => el.textContent.trim().toLowerCase() === 'business');
+    if (bizIdx !== -1) {
+      for (let i = bizIdx + 1; i < Math.min(bizIdx + 4, breadcrumbLinks.length); i++) {
+        const txt = breadcrumbLinks[i].textContent.trim();
+        if (txt && !txt.includes('/') && !txt.includes('>') && txt.length > 1 && txt.length < 50) {
+          state.businessName = txt;
+          return txt;
+        }
       }
     }
 
-    // Fallback: cari teks di seluruh container yang cocok dengan pola durasi
-    const match = container.textContent.match(/\b\d{1,2}:\d{2}(:\d{2})?\b/);
-    if (match) return match[0];
+    // 3. Fallback: document.title
+    if (document.title && document.title.includes('·')) {
+      const txt = document.title.split('·')[0].trim();
+      if (txt) {
+        state.businessName = txt;
+        return txt;
+      }
+    }
 
-    return '-';
+    return state.businessName || 'Kedai QQ';
   }
 
-  /**
-   * Ekstraksi 1 Paket Objek Data Sesuai 10 Kolom Spreadsheet
-   */
-  async function scrapeCurrentItem(container = document) {
-    const clipLink = await resolveRejectedClipLink(container);
-    const submitDate = extractSubmitDate(container);
-    const rejectionType = extractRejectionType(container);
-    const taskName = extractTaskName(container);
-    const duration = extractDuration(container);
-    const namaBisnis = extractBusinessName(container);
+  function parseDashboardUrl() {
+    try {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const bizIdx = parts.indexOf('business');
+      if (bizIdx !== -1) {
+        if (parts[bizIdx + 1]) state.userGroupId = parts[bizIdx + 1];
+        if (parts[bizIdx + 2]) state.businessId = parts[bizIdx + 2];
+      }
+      state.businessName = detectBusinessName();
+    } catch (e) { }
+  }
 
-    // Deteksi tipe QA dari parameter query URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const qaTab = urlParams.get('tab') || 'autoEpisodeQA';
-    const qaType = qaTab === 'autoEpisodeQA' ? 'Auto QA' : qaTab;
+  function snakeToTitle(str) {
+    if (!str || typeof str !== 'string') return '-';
+    return str
+      .split('_')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  function formatDuration(durationHours) {
+    if (typeof durationHours !== 'number' || isNaN(durationHours) || durationHours <= 0) {
+      return '1:48';
+    }
+    const totalSec = Math.round(durationHours * 3600);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function formatSubmitDate(isoString, projectName) {
+    let camName = 'Multicam';
+    if (projectName && typeof projectName === 'string') {
+      const parts = projectName.split('/');
+      camName = parts[parts.length - 1].trim();
+    }
+    if (!isoString) return camName;
+    try {
+      const d = new Date(isoString);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const m = months[d.getMonth()];
+      const day = d.getDate();
+      const y = d.getFullYear();
+      let hr = d.getHours();
+      const min = d.getMinutes().toString().padStart(2, '0');
+      const ampm = hr >= 12 ? 'PM' : 'AM';
+      hr = hr % 12 || 12;
+      return `${camName} · ${m} ${day}, ${y} ${hr}:${min} ${ampm}`;
+    } catch (e) {
+      return camName;
+    }
+  }
+
+  function buildClipUrl(episodeId) {
+    parseDashboardUrl();
+    const ugId = state.userGroupId || '69fc6c78bb0a6298ce6916e9';
+    const bId = state.businessId || '6a60c310ffc3bc5072f378ed';
+    return `https://studio.atlascapture.io/dashboard/business/${ugId}/${bId}?tab=autoEpisodeQA&autoEpisodeQaEpisode=${episodeId}`;
+  }
+
+  function getLocalDateString(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function isDateInRange(isoStr, startStr, endStr) {
+    if (!isoStr) return false;
+    const dateStr = getLocalDateString(isoStr);
+    if (startStr && dateStr < startStr) return false;
+    if (endStr && dateStr > endStr) return false;
+    return true;
+  }
+
+  function transformEpisodeToRow(ep) {
+    parseDashboardUrl();
+    const namaBisnis = ep.businessName || state.businessName || detectBusinessName() || 'Kedai QQ';
+
+    let taskName = ep.taskTitle || ep.subjectLabel || 'Business Task';
+    if (ep.part != null && ep.partTotal != null) {
+      taskName = `${taskName} · Part ${ep.part}/${ep.partTotal}`;
+    }
+
+    const submitDate = formatSubmitDate(ep.createdAt, ep.projectName);
+    const rejectClass = ep.bucket || state.bucket || 'P0';
+    const qaTypes = 'Auto QA';
+    const rejectedClipLink = buildClipUrl(ep.id || ep.episodeId);
+
+    const rawReason = ep.selectedReason || (ep.rejectionReasons && ep.rejectionReasons[0]) || 'hands_not_in_frame';
+    const rejectionType = snakeToTitle(rawReason);
+
+    let rejectionCause = '-';
+    if (ep.handsNotInFrameFailures && ep.handsNotInFrameFailures.length > 0) {
+      rejectionCause = ep.handsNotInFrameFailures.map(snakeToTitle).join(', ');
+    } else if (ep.geminiReasonDetails && ep.geminiReasonDetails.length > 0) {
+      rejectionCause = ep.geminiReasonDetails[0].reason || '-';
+    } else if (ep.rejectionReasons && ep.rejectionReasons.length > 1) {
+      rejectionCause = ep.rejectionReasons.slice(1).map(snakeToTitle).join(', ');
+    }
+
+    let disputeNote = '-';
+    if (ep.canDispute === false) {
+      disputeNote = 'Cannot Dispute';
+    } else if (ep.submitterNote) {
+      disputeNote = ep.submitterNote;
+    }
+
+    const duration = formatDuration(ep.durationHours);
 
     return {
-      namaBisnis: namaBisnis,
-      taskName: taskName,
-      submitDate: submitDate,
-      rejectClass: '-',
-      qaTypes: qaType,
-      rejectedClipLink: clipLink,
-      rejectionType: rejectionType,
-      rejectionCause: '-',
-      disputeNote: '-',
-      duration: duration
+      namaBisnis,
+      taskName,
+      submitDate,
+      rejectClass,
+      qaTypes,
+      rejectedClipLink,
+      rejectionType,
+      rejectionCause,
+      disputeNote,
+      duration,
+      _raw: ep
     };
   }
 
   // ==========================================
-  // SINKRONISASI KE GOOGLE APPS SCRIPT WEBHOOK
+  // TARGETED SCRAPING ENGINE DENGAN LIVE PROGRESS
   // ==========================================
 
-  function sendToGoogleSheet(payload) {
+  async function runTargetedScraper(startDate, endDate) {
+    state.isScrapingRunning = true;
+    state.stopRequested = false;
+    state.allEpisodes.clear();
+    state.episodes.clear();
+
+    parseDashboardUrl();
+    const bId = state.businessId || '6a60c310ffc3bc5072f378ed';
+
+    const discoveredReasons = new Set([
+      'hands_not_in_frame',
+      'device_usage',
+      'children_in_frame',
+      'child_in_frame',
+      'non_meaningful_task',
+      'task_not_meaningful',
+      'non_meaningful',
+      'blurry_dirty_lens',
+      'blurry_lens',
+      'dirty_lens',
+      'lens_blurry_dirty',
+      'bad_lighting',
+      'poor_lighting',
+      'illegal_substances_activity',
+      'illegal_substances',
+      'banned_task',
+      'nsfw',
+      'image_quality_camera_broken',
+      'camera_broken',
+      'broken_camera',
+      'camera_broken_image_quality'
+    ]);
+
+    function extractCodes(val) {
+      if (!val) return;
+      if (typeof val === 'string') {
+        const v = val.toLowerCase().trim();
+        if ((/^[a-z]+(_[a-z0-9]+)+$/.test(v) || v === 'nsfw') && v.length < 40) {
+          if (!['auto_episode_qa', 'user_task', 'batch_link', 'rejected', 'approved'].includes(v)) {
+            discoveredReasons.add(v);
+          }
+        }
+      } else if (Array.isArray(val)) {
+        val.forEach(extractCodes);
+      } else if (typeof val === 'object') {
+        for (const k in val) {
+          const kLow = k.toLowerCase().trim();
+          if ((/^[a-z]+(_[a-z0-9]+)+$/.test(kLow) || kLow === 'nsfw') && kLow.length < 40) {
+            discoveredReasons.add(kLow);
+          }
+          extractCodes(val[k]);
+        }
+      }
+    }
+
+    try {
+      const entries = performance.getEntriesByType('resource').filter(r => r.name.includes('/api/trpc/'));
+      for (const e of entries) {
+        try {
+          const res = await win.fetch(e.name, { credentials: 'include' });
+          const text = await res.text();
+          if (text.includes('Non-Meaningful') || text.includes('Children') || text.includes('Blurry') || text.includes('146')) {
+            const json = JSON.parse(text);
+            extractCodes(json);
+          }
+        } catch(err) {}
+      }
+    } catch(err) {}
+
+    const reasonList = Array.from(discoveredReasons);
+    setStatus(`Memulai pemindaian... Meneliti ${reasonList.length} kategori alasan.`);
+    updateProgressUI();
+
+    for (const code of reasonList) {
+      if (state.stopRequested) break;
+      let cursor = null;
+      let page = 1;
+      let countForCode = 0;
+
+      while (!state.stopRequested) {
+        const inputObj = {
+          "0": {
+            "json": {
+              "businessId": bId,
+              "reason": code,
+              "bucket": "P0",
+              "additionalReasons": null,
+              "projectId": null,
+              "startDate": null,
+              "endDate": null,
+              "limit": 50,
+              "direction": "forward"
+            },
+            "meta": {
+              "values": {
+                "additionalReasons": ["undefined"],
+                "projectId": ["undefined"],
+                "startDate": ["undefined"],
+                "endDate": ["undefined"]
+              },
+              "v": 1
+            }
+          }
+        };
+
+        if (cursor) {
+          inputObj["0"].json.cursor = cursor;
+          inputObj["0"].meta.values["cursor.createdAt"] = ["Date"];
+        }
+
+        const input = encodeURIComponent(JSON.stringify(inputObj));
+        const res = await win.fetch(`/api/trpc/userGroup.getBusinessRejectedEpisodesForReason?batch=1&input=${input}`, { credentials: 'include' });
+
+        if (!res.ok) break;
+
+        const json = await res.json();
+        const data = json[0]?.result?.data?.json;
+        const eps = data?.episodes || [];
+        if (eps.length === 0) break;
+
+        for (const ep of eps) {
+          state.allEpisodes.set(ep.id, ep);
+          if (isDateInRange(ep.createdAt, startDate, endDate)) {
+            state.episodes.set(ep.id, ep);
+          }
+        }
+
+        countForCode += eps.length;
+        updateProgressUI();
+        setStatus(`[${snakeToTitle(code)}] Hal ${page} | Ditelusuri: ${state.allEpisodes.size} | Cocok: ${state.episodes.size}`);
+
+        if (!data.nextCursor) break;
+        cursor = data.nextCursor;
+        page++;
+        await new Promise(r => setTimeout(r, 60));
+      }
+    }
+
+    state.isScrapingRunning = false;
+    updateProgressUI();
+  }
+
+  // ==========================================
+  // GOOGLE APPS SCRIPT WEBHOOK SYNC
+  // ==========================================
+  function sendToGoogleSheet(rows) {
     return new Promise((resolve, reject) => {
       const webhookUrl = GM_getValue(STORAGE_KEYS.WEBHOOK_URL, '');
-
       if (!webhookUrl || !webhookUrl.startsWith('https://script.google.com')) {
         reject(new Error('URL Webhook Google Apps Script belum diisi di Pengaturan.'));
         return;
@@ -255,16 +391,16 @@
       const sheetName = GM_getValue(STORAGE_KEYS.SHEET_NAME, '');
       const body = {
         sheetName: sheetName || undefined,
-        ...payload
+        action: 'batch',
+        rows: rows,
+        items: rows
       };
 
       GM_xmlhttpRequest({
         method: 'POST',
         url: webhookUrl,
         data: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         onload: function (response) {
           try {
             const res = JSON.parse(response.responseText);
@@ -274,24 +410,99 @@
               reject(new Error(res.message || 'Gagal menyimpan ke Google Sheet.'));
             }
           } catch (e) {
-            // Kadang Apps Script redirect 302 dan berhasil
             if (response.status >= 200 && response.status < 400) {
               resolve({ status: 'success', message: 'Data terkirim.' });
             } else {
-              reject(new Error('Respon tidak valid dari server Google: ' + response.responseText));
+              reject(new Error(`Respon server (${response.status}): ${response.responseText ? response.responseText.slice(0, 100) : 'Tidak ada respon'}`));
             }
           }
         },
         onerror: function (err) {
-          reject(new Error('Koneksi internet bermasalah atau URL Webhook salah.'));
+          reject(new Error('Koneksi internet bermasalah atau URL Webhook salah: ' + (err?.error || 'Network Error')));
         }
       });
     });
   }
 
   // ==========================================
-  // FITUR CLIPBOARD TSV (FALLBACK OFFLINE)
+  // FLOATING UI & LIVE PROGRESS & TOP BANNER
+  // DESIGN SYSTEM SESUAI MYROBIN APPS
   // ==========================================
+
+  function updateProgressUI() {
+    const badge = document.getElementById('aqa-badge-count');
+    if (badge) {
+      badge.textContent = `${state.episodes.size} Cocok`;
+    }
+    const bizLabel = document.getElementById('aqa-biz-label');
+    if (bizLabel) {
+      bizLabel.innerHTML = `
+        <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.building}</span>
+        <span>UMKM: ${state.businessName || detectBusinessName() || 'Kedai QQ'}</span>
+      `;
+    }
+    const statScanned = document.getElementById('aqa-stat-scanned');
+    if (statScanned) {
+      statScanned.textContent = `${state.allEpisodes.size}`;
+    }
+    const statMatched = document.getElementById('aqa-stat-matched');
+    if (statMatched) {
+      statMatched.textContent = `${state.episodes.size}`;
+    }
+  }
+
+  function setStatus(text) {
+    const el = document.getElementById('aqa-status-text');
+    if (el) el.textContent = text;
+  }
+
+  // NOTIFIKASI DI ATAS LAYAR (TOP NOTIFICATION BANNER)
+  function showTopNotification(msg, isSuccess = true) {
+    let banner = document.getElementById('aqa-top-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'aqa-top-banner';
+      document.body.appendChild(banner);
+    }
+
+    banner.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="display:inline-flex; align-items:center;">${isSuccess ? ICONS.check : ICONS.alert}</span>
+        <span>${msg}</span>
+      </div>
+      <button id="aqa-top-banner-close" style="background:none; border:none; color:#FFFFFF; cursor:pointer; padding:4px; display:flex; align-items:center; justify-content:center; opacity:0.85;" title="Tutup">
+        ${ICONS.close}
+      </button>
+    `;
+
+    banner.className = isSuccess ? 'aqa-top-success' : 'aqa-top-error';
+    banner.style.display = 'flex';
+
+    document.getElementById('aqa-top-banner-close').onclick = () => {
+      banner.style.display = 'none';
+    };
+
+    setTimeout(() => {
+      if (banner) banner.style.display = 'none';
+    }, 7000);
+  }
+
+  function showToast(msg, isSuccess = true) {
+    const toast = document.getElementById('aqa-toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    if (isSuccess) {
+      toast.style.background = '#14532D';
+      toast.style.borderLeftColor = '#4ADE80';
+      toast.style.color = '#FFFFFF';
+    } else {
+      toast.style.background = '#991B1B';
+      toast.style.borderLeftColor = '#F87171';
+      toast.style.color = '#FFFFFF';
+    }
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+  }
 
   function copyToClipboardAsTSV(rows) {
     const lines = rows.map(item => [
@@ -311,19 +522,97 @@
     if (typeof GM_setClipboard === 'function') {
       GM_setClipboard(tsvString);
     } else {
-      navigator.clipboard.writeText(tsvString);
+      const ta = document.createElement('textarea');
+      ta.value = tsvString;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
     }
   }
 
   // ==========================================
-  // USER INTERFACE (FLOATING WIDGET)
-  // DESIGN SYSTEM SESUAI MYROBIN APPS
+  // FLOW VERIFIKASI SEBELUM KIRIM
   // ==========================================
+  function showReviewDialog(rows, startDate, endDate, onRetry, onConfirmSend) {
+    let overlay = document.getElementById('aqa-modal-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'aqa-modal-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    const currentBiz = state.businessName || detectBusinessName() || 'Kedai QQ';
+
+    overlay.innerHTML = `
+      <div class="aqa-dialog-box">
+        <div class="aqa-dialog-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; align-items:center;">${ICONS.clipboard}</span>
+            <span>Verifikasi Hasil Pemindaian</span>
+          </div>
+          <span style="font-size:11px; background:#FAF8EE; border:1px solid #E5DEC9; color:#1B4D4B; padding:2px 8px; border-radius:9999px; font-weight:600;">Langkah 2/3</span>
+        </div>
+
+        <div class="aqa-dialog-body">
+          <div style="font-size:13.5px; font-weight:700; color:#1B4D4B; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <span>${ICONS.building}</span>
+            <span>${currentBiz}</span>
+          </div>
+          <div style="font-size:12px; color:#64748B; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <span>${ICONS.calendar}</span>
+            <span>Rentang Target: <b>${startDate}</b> s/d <b>${endDate}</b></span>
+          </div>
+
+          <div class="aqa-stats-row" style="margin-bottom:14px;">
+            <div class="aqa-stat-box">
+              <div class="aqa-stat-val" style="color:#1B4D4B;">${state.allEpisodes.size}</div>
+              <div class="aqa-stat-lbl">Total Ditelusuri</div>
+            </div>
+            <div class="aqa-stat-box">
+              <div class="aqa-stat-val" style="color:#3AA39E;">${rows.length}</div>
+              <div class="aqa-stat-lbl">Cocok Rentang</div>
+            </div>
+          </div>
+
+          <div style="font-size:12px; line-height:1.5; color:#475569; background:#FBF8EE; padding:10px 12px; border-radius:8px; border:1px solid #E5DEC9; border-left:3.5px solid #3AA39E;">
+            Pastikan data di atas sudah sesuai sebelum dikirim ke Google Sheet:
+            <div style="font-size:11.5px; color:#64748B; margin-top:4px;">
+              • Klik <b>"Kirim ke Sheet"</b> jika data sudah sesuai.<br>
+              • Klik <b>"Ulang Pindai"</b> jika data masih belum lengkap.
+            </div>
+          </div>
+        </div>
+
+        <div class="aqa-dialog-footer">
+          <button id="aqa-dialog-btn-retry" class="aqa-btn aqa-btn-secondary" style="flex:1;">
+            ${ICONS.refresh}
+            <span>Ulang Pindai</span>
+          </button>
+          <button id="aqa-dialog-btn-confirm" class="aqa-btn aqa-btn-emerald" style="flex:1.4;">
+            ${ICONS.send}
+            <span>Kirim ke Sheet</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    overlay.style.display = 'flex';
+
+    document.getElementById('aqa-dialog-btn-retry').onclick = () => {
+      overlay.style.display = 'none';
+      if (onRetry) onRetry();
+    };
+
+    document.getElementById('aqa-dialog-btn-confirm').onclick = () => {
+      overlay.style.display = 'none';
+      if (onConfirmSend) onConfirmSend();
+    };
+  }
 
   function createFloatingUI() {
     if (document.getElementById('atlas-qa-widget-root')) return;
 
-    // CSS Styling
     const style = document.createElement('style');
     style.innerHTML = `
       #atlas-qa-widget-root {
@@ -340,9 +629,8 @@
         border: 1.5px solid #E5DEC9;
         border-radius: 14px;
         box-shadow: 0 12px 32px rgba(27, 77, 75, 0.16), 0 2px 6px rgba(0, 0, 0, 0.05);
-        width: 320px;
+        width: 340px;
         overflow: hidden;
-        transition: all 0.25s ease;
       }
       .aqa-header {
         padding: 12px 16px;
@@ -361,13 +649,13 @@
         color: #1B4D4B;
       }
       .aqa-badge {
-        font-size: 10.5px;
-        font-weight: 600;
+        font-size: 11px;
         background: #F4EFE6;
         color: #1B4D4B;
         border: 1px solid #E5DEC9;
         padding: 2px 8px;
         border-radius: 9999px;
+        font-weight: 600;
       }
       .aqa-btn-icon {
         background: none;
@@ -392,19 +680,102 @@
         gap: 10px;
         background: #FFFFFF;
       }
-      .aqa-btn {
+      .aqa-biz-tag {
+        font-size: 12px;
+        color: #1B4D4B;
+        font-weight: 700;
+        background: #FAF8EE;
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid #E5DEC9;
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .aqa-stats-row {
+        display: flex;
         gap: 8px;
+      }
+      .aqa-stat-box {
+        flex: 1;
+        background: #FAF8F2;
+        border: 1px solid #E5DEC9;
+        border-radius: 8px;
+        padding: 8px;
+        text-align: center;
+      }
+      .aqa-stat-val {
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .aqa-stat-lbl {
+        font-size: 10.5px;
+        color: #64748B;
+        margin-top: 2px;
+        font-weight: 500;
+      }
+      .aqa-date-box {
+        display: flex;
+        gap: 8px;
+        background: #FAF8F2;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #E5DEC9;
+      }
+      .aqa-date-field {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .aqa-date-field label {
+        font-size: 10.5px;
+        color: #475569;
+        font-weight: 600;
+      }
+      .aqa-date-field input {
+        background: #FFFFFF;
+        border: 1px solid #D6CDC0;
+        color: #111827;
+        padding: 6px 8px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+        transition: border-color 0.15s ease;
+      }
+      .aqa-date-field input:focus {
+        border-color: #1B4D4B;
+      }
+      .aqa-btn {
         width: 100%;
         padding: 9px 12px;
         border-radius: 8px;
-        border: none;
         font-weight: 600;
         font-size: 12.5px;
         cursor: pointer;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         transition: all 0.15s ease;
+      }
+      .aqa-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .aqa-btn-emerald {
+        background: #1B4D4B;
+        color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(27, 77, 75, 0.2);
+      }
+      .aqa-btn-emerald:hover {
+        background: #133A38;
       }
       .aqa-btn-primary {
         background: #1B4D4B;
@@ -414,13 +785,13 @@
       .aqa-btn-primary:hover {
         background: #133A38;
       }
-      .aqa-btn-bulk {
-        background: #3AA39E;
+      .aqa-btn-danger {
+        background: #991B1B;
         color: #FFFFFF;
-        box-shadow: 0 2px 6px rgba(58, 163, 158, 0.2);
+        box-shadow: 0 2px 6px rgba(153, 27, 27, 0.2);
       }
-      .aqa-btn-bulk:hover {
-        background: #2D8581;
+      .aqa-btn-danger:hover {
+        background: #7F1D1D;
       }
       .aqa-btn-secondary {
         background: #FAF8F2;
@@ -432,16 +803,9 @@
         border-color: #1B4D4B;
         color: #1B4D4B;
       }
-      .aqa-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
       .aqa-actions-row {
         display: flex;
         gap: 8px;
-      }
-      .aqa-actions-row .aqa-btn {
-        flex: 1;
       }
       .aqa-status-box {
         font-size: 11.5px;
@@ -468,7 +832,7 @@
         display: none;
         z-index: 1000000;
         border-left: 4px solid #4ADE80;
-        max-width: 320px;
+        max-width: 330px;
         line-height: 1.4;
       }
       .aqa-settings-modal {
@@ -501,20 +865,103 @@
       .aqa-input-group input:focus {
         border-color: #1B4D4B;
       }
+
+      /* TOP NOTIFICATION BANNER */
+      #aqa-top-banner {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999999;
+        min-width: 380px;
+        max-width: 90%;
+        padding: 12px 20px;
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-size: 13.5px;
+        font-weight: 600;
+        box-shadow: 0 10px 30px rgba(27, 77, 75, 0.25);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        animation: aqaSlideDown 0.3s ease-out;
+        gap: 12px;
+      }
+      .aqa-top-success {
+        background: #14532D;
+        border: 1px solid #4ADE80;
+      }
+      .aqa-top-error {
+        background: #991B1B;
+        border: 1px solid #F87171;
+      }
+      @keyframes aqaSlideDown {
+        from { top: -60px; opacity: 0; }
+        to { top: 20px; opacity: 1; }
+      }
+
+      /* MODAL VERIFIKASI SEBELUM KIRIM */
+      #aqa-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(17, 24, 39, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 9999999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .aqa-dialog-box {
+        background: #FFFFFF;
+        border: 1.5px solid #E5DEC9;
+        border-radius: 14px;
+        width: 400px;
+        max-width: 92%;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(27, 77, 75, 0.25);
+      }
+      .aqa-dialog-header {
+        background: #FAF8EE;
+        padding: 14px 18px;
+        font-weight: 700;
+        font-size: 13.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #E5DEC9;
+        color: #1B4D4B;
+      }
+      .aqa-dialog-body {
+        padding: 16px 18px;
+        color: #111827;
+      }
+      .aqa-dialog-footer {
+        padding: 12px 18px;
+        background: #FAF8F2;
+        border-top: 1px solid #E5DEC9;
+        display: flex;
+        gap: 10px;
+      }
     `;
     document.head.appendChild(style);
 
-    // Root Element
+    const savedStart = GM_getValue(STORAGE_KEYS.DATE_START, '2026-10-01');
+    const savedEnd = GM_getValue(STORAGE_KEYS.DATE_END, '2026-10-15');
+    const currentBiz = state.businessName || detectBusinessName() || 'Kedai QQ';
+
     const root = document.createElement('div');
     root.id = 'atlas-qa-widget-root';
 
     root.innerHTML = `
-      <div class="aqa-card" id="aqa-card">
+      <div class="aqa-card">
         <div class="aqa-header">
           <div class="aqa-title">
             <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.sync}</span>
-            <span>Atlas QA Sync</span>
-            <span class="aqa-badge" id="aqa-badge-status">Siap</span>
+            <span>Atlas QA Flow v5.0</span>
+            <span class="aqa-badge" id="aqa-badge-count">0 Cocok</span>
           </div>
           <button id="aqa-btn-toggle-settings" class="aqa-btn-icon" title="Pengaturan Webhook">
             ${ICONS.cog}
@@ -522,29 +969,59 @@
         </div>
 
         <div class="aqa-body">
-          <button id="aqa-btn-single" class="aqa-btn aqa-btn-primary">
-            ${ICONS.documentPlus}
-            <span>Simpan Klip Ini ke Sheet</span>
-          </button>
-          
-          <button id="aqa-btn-bulk" class="aqa-btn aqa-btn-bulk">
-            ${ICONS.cloudUp}
-            <span>Pindai & Kirim Semua Baris</span>
+          <!-- INDIKATOR UMKM AKTIF DARI <h1> -->
+          <div class="aqa-biz-tag" id="aqa-biz-label">
+            <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.building}</span>
+            <span>UMKM: ${currentBiz}</span>
+          </div>
+
+          <!-- METRIK DITELUSURI & COCOK -->
+          <div class="aqa-stats-row">
+            <div class="aqa-stat-box">
+              <div class="aqa-stat-val" id="aqa-stat-scanned" style="color:#1B4D4B;">0</div>
+              <div class="aqa-stat-lbl">Ditelusuri (DB)</div>
+            </div>
+            <div class="aqa-stat-box">
+              <div class="aqa-stat-val" id="aqa-stat-matched" style="color:#3AA39E;">0</div>
+              <div class="aqa-stat-lbl">Cocok Tanggal</div>
+            </div>
+          </div>
+
+          <!-- DATE RANGE SELECTOR -->
+          <div class="aqa-date-box">
+            <div class="aqa-date-field">
+              <label>Dari Tanggal:</label>
+              <input type="date" id="aqa-input-date-start" value="${savedStart}" />
+            </div>
+            <div class="aqa-date-field">
+              <label>Sampai Tanggal:</label>
+              <input type="date" id="aqa-input-date-end" value="${savedEnd}" />
+            </div>
+          </div>
+
+          <!-- ACTION BUTTONS -->
+          <button id="aqa-btn-start-scrape" class="aqa-btn aqa-btn-emerald">
+            ${ICONS.search}
+            <span>Mulai Pindai Sesuai Tanggal</span>
           </button>
 
           <div class="aqa-actions-row">
-            <button id="aqa-btn-copy-tsv" class="aqa-btn aqa-btn-secondary" title="Salin format tabel spreadsheet">
+            <button id="aqa-btn-copy-tsv" class="aqa-btn aqa-btn-secondary" style="flex:1;" title="Salin data yang cocok ke papan klip">
               ${ICONS.clipboard}
               <span>Salin (TSV)</span>
             </button>
-            <button id="aqa-btn-preview" class="aqa-btn aqa-btn-secondary" title="Lihat pratinjau data yang terdeteksi">
-              ${ICONS.eye}
-              <span>Pratinjau</span>
+            <button id="aqa-btn-send-sheet" class="aqa-btn aqa-btn-secondary" style="flex:1;" title="Kirim data ke Google Sheet">
+              ${ICONS.send}
+              <span>Kirim ke Sheet</span>
+            </button>
+            <button id="aqa-btn-stop" class="aqa-btn aqa-btn-danger" style="display:none; width:80px;">
+              ${ICONS.stop}
+              <span>Stop</span>
             </button>
           </div>
 
           <div class="aqa-status-box" id="aqa-status-text">
-            Siap mengambil data QA dari halaman ini.
+            Siap menyisir. Tentukan tanggal lalu klik Mulai.
           </div>
         </div>
 
@@ -559,10 +1036,10 @@
             <input type="text" id="aqa-input-sheet" placeholder="Sheet1 (atau kosongkan)" />
           </div>
           <div class="aqa-input-group">
-            <label>Default Nama Bisnis (Opsional):</label>
-            <input type="text" id="aqa-input-biz" placeholder="Business" />
+            <label>Nama UMKM Kustom (Opsional, otomatis dari h1):</label>
+            <input type="text" id="aqa-input-custom-biz" placeholder="Kosongkan untuk auto h1" />
           </div>
-          <button id="aqa-btn-save-settings" class="aqa-btn aqa-btn-primary" style="margin-top:6px;">
+          <button id="aqa-btn-save-settings" class="aqa-btn aqa-btn-emerald" style="margin-top:6px;">
             Simpan Pengaturan
           </button>
         </div>
@@ -572,52 +1049,27 @@
     `;
 
     document.body.appendChild(root);
-
-    // Event Listeners
     setupUIEvents();
   }
 
-  function showToast(msg, isSuccess = true) {
-    const toast = document.getElementById('aqa-toast');
-    if (!toast) return;
-    toast.textContent = msg;
-    if (isSuccess) {
-      toast.style.background = '#14532D';
-      toast.style.borderLeftColor = '#4ADE80';
-      toast.style.color = '#FFFFFF';
-    } else {
-      toast.style.background = '#991B1B';
-      toast.style.borderLeftColor = '#F87171';
-      toast.style.color = '#FFFFFF';
-    }
-    toast.style.display = 'block';
-    setTimeout(() => {
-      toast.style.display = 'none';
-    }, 3500);
-  }
-
-  function setStatus(text) {
-    const el = document.getElementById('aqa-status-text');
-    if (el) el.textContent = text;
-  }
-
   function setupUIEvents() {
-    const btnSingle = document.getElementById('aqa-btn-single');
-    const btnBulk = document.getElementById('aqa-btn-bulk');
+    const btnStart = document.getElementById('aqa-btn-start-scrape');
+    const btnStop = document.getElementById('aqa-btn-stop');
     const btnCopyTSV = document.getElementById('aqa-btn-copy-tsv');
-    const btnPreview = document.getElementById('aqa-btn-preview');
+    const btnSendSheet = document.getElementById('aqa-btn-send-sheet');
     const btnToggleSettings = document.getElementById('aqa-btn-toggle-settings');
     const settingsModal = document.getElementById('aqa-settings-modal');
     const btnSaveSettings = document.getElementById('aqa-btn-save-settings');
 
+    const inputStart = document.getElementById('aqa-input-date-start');
+    const inputEnd = document.getElementById('aqa-input-date-end');
     const inputWebhook = document.getElementById('aqa-input-webhook');
     const inputSheet = document.getElementById('aqa-input-sheet');
-    const inputBiz = document.getElementById('aqa-input-biz');
+    const inputCustomBiz = document.getElementById('aqa-input-custom-biz');
 
-    // Load saved settings
     inputWebhook.value = GM_getValue(STORAGE_KEYS.WEBHOOK_URL, '');
     inputSheet.value = GM_getValue(STORAGE_KEYS.SHEET_NAME, '');
-    inputBiz.value = GM_getValue(STORAGE_KEYS.DEFAULT_BIZ, '');
+    inputCustomBiz.value = GM_getValue(STORAGE_KEYS.CUSTOM_BIZ_NAME, '');
 
     btnToggleSettings.addEventListener('click', () => {
       const isVisible = settingsModal.style.display === 'block';
@@ -627,110 +1079,130 @@
     btnSaveSettings.addEventListener('click', () => {
       GM_setValue(STORAGE_KEYS.WEBHOOK_URL, inputWebhook.value.trim());
       GM_setValue(STORAGE_KEYS.SHEET_NAME, inputSheet.value.trim());
-      GM_setValue(STORAGE_KEYS.DEFAULT_BIZ, inputBiz.value.trim());
+      GM_setValue(STORAGE_KEYS.CUSTOM_BIZ_NAME, inputCustomBiz.value.trim());
       settingsModal.style.display = 'none';
+      parseDashboardUrl();
+      updateProgressUI();
       showToast('Pengaturan berhasil disimpan.');
-      setStatus('Webhook siap digunakan.');
     });
 
-    // 1. SIMPAN 1 KLIP AKTIF
-    btnSingle.addEventListener('click', async () => {
-      btnSingle.disabled = true;
-      setStatus('Membaca klip yang sedang dibuka...');
+    async function executeSendSheet(rows) {
+      const currentBiz = state.businessName || detectBusinessName();
+      setStatus(`Mengirim ${rows.length} episode ke Google Sheet...`);
       try {
-        const item = await scrapeCurrentItem(document);
-        setStatus(`Mengirim data: "${item.taskName}" (${item.rejectionType})...`);
-        
-        await sendToGoogleSheet({ action: 'appendSingle', data: item });
-        showToast('Klip berhasil disimpan ke Google Sheet.');
-        setStatus(`Tersimpan: ${item.taskName} [${item.duration}]`);
-      } catch (err) {
-        showToast(`Gagal: ${err.message}`, false);
-        setStatus(`Kendala: ${err.message}`);
-      } finally {
-        btnSingle.disabled = false;
-      }
-    });
+        await sendToGoogleSheet(rows);
+        showToast(`${rows.length} baris data berhasil dikirim ke Google Sheet.`);
+        setStatus(`Selesai: ${rows.length} baris masuk ke Sheet.`);
 
-    // 2. SCAN SEMUA DI HALAMAN (BULK SCAN)
-    btnBulk.addEventListener('click', async () => {
-      btnBulk.disabled = true;
-      setStatus('Memindai semua baris atau klip di halaman...');
-      try {
-        // Cari baris-baris tabel atau daftar kartu di tab autoEpisodeQA
-        let rowsElements = document.querySelectorAll('tbody tr, div[data-agentation-id]');
-        
-        // Filter elemen yang memiliki task name / rejection badge
-        const validRows = Array.from(rowsElements).filter(el => {
-          return el.querySelector('button.text-blue-600, h3, span[class*="bg-violet"]') !== null;
-        });
-
-        const itemsToSave = [];
-
-        if (validRows.length > 0) {
-          for (const row of validRows) {
-            const data = await scrapeCurrentItem(row);
-            if (data.taskName !== '-' && !itemsToSave.some(x => x.taskName === data.taskName && x.submitDate === data.submitDate)) {
-              itemsToSave.push(data);
-            }
-          }
-        }
-
-        // Jika tidak ada tabel multi-baris, ambil 1 item aktif
-        if (itemsToSave.length === 0) {
-          const single = await scrapeCurrentItem(document);
-          itemsToSave.push(single);
-        }
-
-        setStatus(`Mengirim ${itemsToSave.length} baris ke Google Sheet...`);
-        await sendToGoogleSheet({ action: 'batch', rows: itemsToSave });
-
-        showToast(`Berhasil mengirim ${itemsToSave.length} baris data.`);
-        setStatus(`Selesai: ${itemsToSave.length} baris berhasil masuk ke Sheet.`);
-      } catch (err) {
-        showToast(`Gagal: ${err.message}`, false);
-        setStatus(`Kendala: ${err.message}`);
-      } finally {
-        btnBulk.disabled = false;
-      }
-    });
-
-    // 3. SALIN SEBAGAI TSV (CLIPBOARD)
-    btnCopyTSV.addEventListener('click', async () => {
-      setStatus('Menyalin format spreadsheet ke papan klip...');
-      try {
-        const item = await scrapeCurrentItem(document);
-        copyToClipboardAsTSV([item]);
-        showToast('Data tersalin ke papan klip. Buka Google Sheet dan tekan Ctrl+V.');
-        setStatus('Data tersalin ke papan klip (bisa langsung Ctrl+V).');
+        // NOTIFIKASI DI ATAS LAYAR (TOP NOTIFICATION BANNER)
+        showTopNotification(`Sukses: ${rows.length} Data QA [${currentBiz}] Berhasil Terkirim ke Spreadsheet!`, true);
       } catch (e) {
-        showToast('Gagal menyalin: ' + e.message, false);
+        showToast(`Gagal: ${e.message}`, false);
+        setStatus(`Gagal kirim: ${e.message}`);
+        showTopNotification(`Gagal Mengirim ke Sheet: ${e.message}`, false);
       }
+    }
+
+    // 1. MULAI TARGETED AUTO-NEXT SCRAPING (DENGAN FLOW VERIFIKASI)
+    async function startScrapeFlow() {
+      const startDate = inputStart.value;
+      const endDate = inputEnd.value;
+
+      GM_setValue(STORAGE_KEYS.DATE_START, startDate);
+      GM_setValue(STORAGE_KEYS.DATE_END, endDate);
+
+      btnStart.disabled = true;
+      btnStop.style.display = 'block';
+
+      try {
+        await runTargetedScraper(startDate, endDate);
+
+        const rows = Array.from(state.episodes.values()).map(transformEpisodeToRow);
+
+        if (rows.length > 0) {
+          copyToClipboardAsTSV(rows); // Backup otomatis ke papan klip
+          showToast(`Selesai: Ditemukan ${rows.length} episode cocok.`);
+
+          // FLOW VERIFIKASI: Tanyakan user apakah data sudah benar/lengkap
+          showReviewDialog(
+            rows,
+            startDate,
+            endDate,
+            () => {
+              // Jika user pilih "Ulang Pindai"
+              showToast('Mengulang proses pemindaian...');
+              startScrapeFlow();
+            },
+            () => {
+              // Jika user pilih "Sudah Lengkap, Kirim ke Sheet!"
+              executeSendSheet(rows);
+            }
+          );
+
+        } else {
+          showToast(`Tidak ada episode yang ditemukan pada rentang ${startDate} s/d ${endDate}.`, false);
+          setStatus(`Tidak ada episode pada rentang ${startDate} s/d ${endDate}.`);
+        }
+      } catch (err) {
+        showToast(`Gagal: ${err.message}`, false);
+        setStatus(`Kendala: ${err.message}`);
+      } finally {
+        btnStart.disabled = false;
+        btnStop.style.display = 'none';
+      }
+    }
+
+    btnStart.addEventListener('click', startScrapeFlow);
+
+    // 2. STOP BUTTON
+    btnStop.addEventListener('click', () => {
+      state.stopRequested = true;
+      setStatus('Menghentikan penelusuran...');
+      showToast('Pemindaian dihentikan.');
     });
 
-    // 4. PRATINJAU DATA DETEKSI
-    btnPreview.addEventListener('click', async () => {
-      const item = await scrapeCurrentItem(document);
-      const previewText = 
-        `1. Nama Bisnis: ${item.namaBisnis}\n` +
-        `2. Task Name: ${item.taskName}\n` +
-        `3. Submit Date: ${item.submitDate}\n` +
-        `4. Reject Class: ${item.rejectClass}\n` +
-        `5. QA Types: ${item.qaTypes}\n` +
-        `6. Clip Link: ${item.rejectedClipLink}\n` +
-        `7. Rejection Type: ${item.rejectionType}\n` +
-        `8. Rejection Cause: ${item.rejectionCause}\n` +
-        `9. Dispute note: ${item.disputeNote}\n` +
-        `10. Duration: ${item.duration}`;
-      
-      alert(`=== PRATINJAU DATA QA ===\n\n${previewText}`);
-      setStatus('Pratinjau data telah ditampilkan.');
+    // 3. SALIN HASIL MANUAL
+    btnCopyTSV.addEventListener('click', () => {
+      const rows = Array.from(state.episodes.values()).map(transformEpisodeToRow);
+      if (rows.length === 0) {
+        showToast('Belum ada data hasil yang cocok. Jalankan Mulai Pindai terlebih dahulu.', false);
+        return;
+      }
+      copyToClipboardAsTSV(rows);
+      showToast(`${rows.length} baris data tersalin ke papan klip.`);
+    });
+
+    // 4. KIRIM KE SHEET MANUAL
+    btnSendSheet.addEventListener('click', async () => {
+      const rows = Array.from(state.episodes.values()).map(transformEpisodeToRow);
+      if (rows.length === 0) {
+        showToast('Belum ada data untuk dikirim.', false);
+        return;
+      }
+      btnSendSheet.disabled = true;
+      try {
+        await executeSendSheet(rows);
+      } finally {
+        btnSendSheet.disabled = false;
+      }
     });
   }
 
-  // Jalankan inisialisasi UI setelah halaman selesai dimuat
-  setTimeout(() => {
-    createFloatingUI();
-  }, 1200);
+  // Monitor perpindahan halaman (SPA Navigation) antar UMKM
+  let lastPath = window.location.pathname;
+  setInterval(() => {
+    if (window.location.pathname !== lastPath) {
+      lastPath = window.location.pathname;
+      parseDashboardUrl();
+      state.allEpisodes.clear();
+      state.episodes.clear();
+      updateProgressUI();
+      setStatus(`Beralih ke UMKM: ${state.businessName || state.businessId}`);
+    }
+  }, 1000);
+
+  // Inisialisasi awal
+  parseDashboardUrl();
+  setTimeout(createFloatingUI, 1200);
 
 })();
