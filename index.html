@@ -9,20 +9,61 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: rgba(22, 29, 47, 0.92);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent-blue: #3b82f6;
-      --accent-cyan: #06b6d4;
-      --accent-emerald: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-rose: #f43f5e;
-      --code-bg: #030712;
-      --radius-lg: 16px;
-      --radius-md: 10px;
+      /* Palette inspired by poster with high contrast and eye-soothing balance */
+      --bg-page: #FBF8EE;
+      --card-bg: #FFFFFF;
+      --card-border: #E5DEC9;
+      --card-border-subtle: #F1ECE0;
+      --card-shadow: 0 4px 20px -2px rgba(27, 77, 75, 0.07);
+
+      /* Typography: WCAG AAA compliant against white & cream */
+      --text-main: #111827; /* Rich dark charcoal: Contrast 12:1 on white */
+      --text-muted: #475569; /* Slate 600: Contrast 5.5:1 */
+      --text-subtle: #64748B;
+
+      /* Primary Brand: Deep Pine Teal (PIC button tone) */
+      --primary: #1B4D4B;
+      --primary-hover: #133A38;
+      --primary-light: #F0FDF4;
+      --primary-dark: #0D2C2B;
+
+      /* Turquoise / Cyan (OZ lettering tone) */
+      --accent-teal: #3AA39E;
+      --accent-teal-soft: #E6F7F6;
+
+      /* Warm Buttercup Yellow (poster background) */
+      --accent-yellow: #F8DE85;
+      --accent-yellow-light: #FFFBEB;
+      --accent-yellow-border: #FDE68A;
+      --accent-yellow-text: #78350F;
+
+      /* State Error: Deep contrast crimson that is soothing and never strains eyes */
+      --state-error-bg: #FEF2F2;
+      --state-error-border: #FECACA;
+      --state-error-accent: #DC2626;
+      --state-error-text: #991B1B; /* Contrast 8.2:1 against #FEF2F2 */
+
+      /* State Success: High contrast forest emerald, soothing & legible */
+      --state-success-bg: #F0FDF4;
+      --state-success-border: #BBF7D0;
+      --state-success-accent: #16A34A;
+      --state-success-text: #14532D; /* Contrast 8.5:1 against #F0FDF4 */
+
+      /* State Warning / Action Required */
+      --state-warning-bg: #FFFBEB;
+      --state-warning-border: #FDE68A;
+      --state-warning-accent: #D97706;
+      --state-warning-text: #78350F; /* Contrast 8.0:1 */
+
+      /* Spruce dark code viewer */
+      --code-bg: #152423;
+      --code-text: #E6F8F6;
+      --code-border: #244846;
+
+      --radius-lg: 14px;
+      --radius-md: 9px;
       --radius-sm: 6px;
+      --radius-pill: 9999px;
       --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -34,13 +75,17 @@
 
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at top left, #1e3a8a, #090d16 50%), radial-gradient(circle at bottom right, #0f172a, #090d16 60%);
+      background-color: var(--bg-page);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(248, 222, 133, 0.35) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(58, 163, 158, 0.12) 0px, transparent 50%);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 24px 16px;
+      padding: 30px 18px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app-wrapper {
@@ -48,47 +93,59 @@
       max-width: 920px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 20px;
     }
 
     /* HEADER */
     .app-header {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
       border-radius: var(--radius-lg);
-      padding: 22px 26px;
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      padding: 24px 28px;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--accent-teal) 50%, var(--primary) 100%);
     }
 
     .brand-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
 
     .badge-status {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 12px;
-      font-weight: 600;
-      color: var(--accent-emerald);
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 4px 10px;
-      border-radius: 9999px;
+      font-weight: 700;
+      color: #ffffff;
+      background: var(--primary);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      padding: 5px 14px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.02em;
     }
 
     .status-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--accent-emerald);
-      box-shadow: 0 0 8px var(--accent-emerald);
+      background: #4ADE80;
+      box-shadow: 0 0 8px #4ADE80;
       animation: pulse 2s infinite;
     }
 
@@ -98,61 +155,84 @@
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff, #93c5fd);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
+      color: var(--text-main);
+      margin-bottom: 6px;
     }
 
     .subtitle {
-      font-size: 13px;
+      font-size: 13.5px;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     /* CARD PANEL */
     .card-panel {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
       border-radius: var(--radius-lg);
-      padding: 22px 26px;
-      box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4);
+      padding: 24px 26px;
+      box-shadow: var(--card-shadow);
     }
 
-    .section-title {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-cyan);
-      margin-bottom: 14px;
+    /* STEP FLOW HEADERS */
+    .step-header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    /* STATUS BAR AKSES SD CARD / PERMISSION */
+    .step-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    /* STATUS BAR AKSES SD CARD (STEP 1) */
     .sd-status-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
-      background: rgba(13, 19, 34, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      gap: 16px;
+      background: var(--state-warning-bg);
+      border: 1px solid var(--state-warning-border);
+      border-left: 4px solid var(--state-warning-accent);
       border-radius: var(--radius-md);
-      padding: 12px 18px;
-      margin-bottom: 16px;
+      padding: 16px 20px;
       flex-wrap: wrap;
       transition: var(--transition);
     }
 
     .sd-status-bar.connected {
-      border-color: rgba(52, 211, 153, 0.45);
-      background: rgba(16, 185, 129, 0.08);
+      background: var(--state-success-bg);
+      border-color: var(--state-success-border);
+      border-left: 4px solid var(--state-success-accent);
     }
 
     .sd-status-info {
@@ -162,26 +242,26 @@
     }
 
     .sd-status-dot {
-      width: 11px;
-      height: 11px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: #f59e0b;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+      background: var(--state-warning-accent);
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
       display: inline-block;
       flex-shrink: 0;
     }
 
     .sd-status-dot.green {
-      background: #10b981;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.85);
+      background: var(--state-success-accent);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
     }
 
     .btn-sd-connect {
-      background: linear-gradient(135deg, #10b981, #059669);
+      background: var(--primary);
       color: #ffffff;
       border: none;
-      padding: 9px 16px;
-      border-radius: var(--radius-md);
+      padding: 10px 20px;
+      border-radius: var(--radius-pill);
       font-size: 13px;
       font-weight: 700;
       font-family: inherit;
@@ -189,22 +269,23 @@
       transition: var(--transition);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(27, 77, 75, 0.25);
     }
 
     .btn-sd-connect:hover {
-      background: linear-gradient(135deg, #34d399, #10b981);
+      background: var(--primary-hover);
       transform: translateY(-1px);
     }
 
     .btn-sd-change {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #94a3b8;
-      padding: 7px 14px;
-      border-radius: var(--radius-md);
-      font-size: 12px;
-      font-weight: 600;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 12.5px;
+      font-weight: 700;
       font-family: inherit;
       cursor: pointer;
       transition: var(--transition);
@@ -214,105 +295,197 @@
     }
 
     .btn-sd-change:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffffff;
+      background: #F8F5EC;
+      color: var(--primary);
+      border-color: var(--primary);
     }
 
-    /* PILIHAN MODE SCAN */
-    .scan-modes-box {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .mode-card {
-      background: #080c16;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: var(--radius-md);
-      padding: 16px;
+    /* KOTAK PANDUAN PRAKTIS SD CARD */
+    .sd-guide-box {
+      margin-top: 14px;
       display: flex;
-      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      background: #FFFFFF;
+      border: 1px dashed #D3C9B6;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--text-main);
+    }
+
+    .sd-guide-icon {
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .sd-guide-text strong {
+      color: var(--primary);
+    }
+
+    /* LOG HISTORY & MERGE COMPONENT */
+    .log-history-card {
+      background: #FAF8F2;
+      border: 1.5px solid #D8D0BE;
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-top: 10px;
+    }
+
+    .log-item-row {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      transition: var(--transition);
-    }
-
-    .mode-card:hover {
-      border-color: rgba(59, 130, 246, 0.4);
-      background: #0b1120;
-    }
-
-    .mode-card.primary {
-      border-color: rgba(16, 185, 129, 0.35);
-      background: rgba(16, 185, 129, 0.04);
-    }
-
-    .btn-folder-pick {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: #ffffff;
-      border: none;
-      padding: 12px 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
-      font-size: 14px;
-      font-weight: 700;
-      font-family: inherit;
+      padding: 11px 15px;
+      transition: var(--transition);
+      flex-wrap: wrap;
+    }
+
+    .log-item-row:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(27, 77, 75, 0.08);
+    }
+
+    .log-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .log-checkbox {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary);
       cursor: pointer;
+    }
+
+    .log-cam-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: #E6F5F4;
+      border: 1px solid #B2D8D6;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-      transition: var(--transition);
-      width: 100%;
-    }
-
-    .btn-folder-pick:hover:not(:disabled) {
-      background: linear-gradient(135deg, #34d399, #10b981);
-      transform: translateY(-1px);
-    }
-
-    .btn-auto-scan {
-      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
-      color: #ffffff;
-      border: none;
-      padding: 11px 18px;
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: var(--transition);
+      gap: 5px;
       white-space: nowrap;
     }
 
-    .btn-auto-scan:hover:not(:disabled) {
-      background: linear-gradient(135deg, #60a5fa, #2563eb);
-      transform: translateY(-1px);
+    .file-cam-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: #E6F5F4;
+      border: 1px solid #B2D8D6;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+
+    .log-actions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--card-border);
+    }
+
+    .btn-icon-danger {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--state-error-text);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .btn-icon-danger:hover {
+      background: var(--state-error-bg);
+      border-color: var(--state-error-border);
+    }
+
+    /* PRIMARY SCAN BOX (STEP 2: KODE KAMERA) */
+    .primary-scan-box {
+      background: #F6FCFB;
+      border: 1.5px solid #B2D8D6;
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      transition: var(--transition);
+    }
+
+    .primary-scan-box:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 16px rgba(27, 77, 75, 0.08);
+    }
+
+    .badge-recommend {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      background: #E6F5F4;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+    }
+
+    .scan-action-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+      max-width: 480px;
+      flex-wrap: wrap;
     }
 
     .code-input-wrapper {
       display: flex;
       align-items: center;
-      background: #0d1322;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: var(--radius-md);
+      background: #ffffff;
+      border: 1px solid #D6CDC0;
+      border-radius: var(--radius-pill);
       overflow: hidden;
+      flex: 1;
+      min-width: 220px;
       transition: var(--transition);
+    }
+
+    .code-input-wrapper:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(27, 77, 75, 0.15);
     }
 
     .code-prefix {
       color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.04);
-      padding: 9px 12px;
+      background: #F4EFE3;
+      padding: 10px 14px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 600;
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid var(--card-border);
       white-space: nowrap;
     }
 
@@ -320,19 +493,111 @@
       border: none !important;
       background: transparent !important;
       border-radius: 0 !important;
-      padding: 9px 12px !important;
+      padding: 10px 14px !important;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 14px !important;
+      font-size: 15px !important;
       font-weight: 700;
-      color: #38bdf8 !important;
+      color: var(--primary) !important;
       letter-spacing: 0.08em;
       width: 100%;
       outline: none;
     }
 
+    .btn-auto-scan {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 11px 22px;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 3px 10px rgba(27, 77, 75, 0.28);
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-auto-scan:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* OR DIVIDER */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 18px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .or-divider span {
+      padding: 0 14px;
+    }
+
+    /* MANUAL SCAN BOX */
+    .manual-scan-box {
+      background: #FAF8F2;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+    }
+
+    /* COLLAPSIBLE PROFILE CARD */
+    .profile-details-card {
+      background: #FCFAF4;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-top: 18px;
+    }
+
+    .profile-summary-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .profile-summary-header::-webkit-details-marker {
+      display: none;
+    }
+
+    .profile-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: #EAE3D2;
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
     select, input[type="text"], textarea {
-      background: #0d1322;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #ffffff;
+      border: 1px solid #D6CDC0;
       color: var(--text-main);
       padding: 9px 12px;
       border-radius: var(--radius-md);
@@ -344,23 +609,8 @@
     }
 
     select:focus, input[type="text"]:focus, textarea:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-    }
-
-    /* PENGATURAN PROFIL */
-    .report-profile-card {
-      background: rgba(13, 19, 34, 0.6);
-      border: 1px dashed rgba(255, 255, 255, 0.15);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      margin-top: 14px;
-    }
-
-    .profile-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(27, 77, 75, 0.15);
     }
 
     /* DATE TABS BAR */
@@ -368,21 +618,21 @@
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
       margin-bottom: 18px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid var(--card-border);
       scrollbar-width: thin;
     }
 
     .date-tab-item {
-      background: #0d1322;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
       color: var(--text-muted);
       font-family: inherit;
       font-size: 13px;
       font-weight: 700;
-      padding: 9px 16px;
-      border-radius: var(--radius-md);
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -392,88 +642,248 @@
     }
 
     .date-tab-item:hover {
-      background: rgba(255, 255, 255, 0.06);
-      color: #ffffff;
+      background: #F8F5EC;
+      color: var(--text-main);
     }
 
     .date-tab-item.active {
-      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      background: var(--primary);
       color: #ffffff;
-      border-color: var(--accent-blue);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(27, 77, 75, 0.25);
     }
 
     .tab-badge {
       font-size: 11px;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.08);
       padding: 2px 7px;
       border-radius: 9999px;
     }
 
-    /* KARTU PENGATURAN LOKASI BERDASARKAN JAM */
-    .location-card-container {
-      background: rgba(13, 19, 34, 0.85);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: var(--radius-md);
-      padding: 16px 18px;
+    .date-tab-item.active .tab-badge {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    /* STATS SUMMARY CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
       margin-bottom: 18px;
     }
 
-    .location-header {
+    .stat-card {
+      background: #FAF8F2;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      transition: var(--transition);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .stat-highlight {
+      color: var(--primary);
+    }
+
+    /* DAILY SUMMARY TABLE */
+    .daily-table-wrapper {
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-bottom: 18px;
+    }
+
+    .daily-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .daily-table th {
+      background: #FAF6ED;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .daily-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border-subtle);
+      color: var(--text-main);
+    }
+
+    .daily-table tr:hover td {
+      background: #FCFAF4;
+      cursor: pointer;
+    }
+
+    .dur-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--state-success-text);
+      background: var(--state-success-bg);
+      border: 1px solid var(--state-success-border);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .time-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: #F4EFE3;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    /* COLLAPSIBLE RAW LOG */
+    .raw-log-details {
+      background: #FAF8F2;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-top: 14px;
+    }
+
+    .raw-log-summary {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      justify-content: space-between;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    .raw-log-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .code-container {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--code-text);
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-height: 400px;
+      margin-top: 12px;
+    }
+
+    /* SINGLE DATE VIEW (STEP 3) */
+    .single-date-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .single-date-header-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FAF8F2;
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
 
     .timeline-pill {
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      padding: 3px 10px;
-      border-radius: 9999px;
+      color: var(--primary);
+      background: var(--primary-light);
+      border: 1px solid rgba(22, 163, 74, 0.25);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
       display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .single-input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .input-group-card {
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .location-input-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
     .multi-location-toggle {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: var(--text-muted);
+      background: #F4EFE3;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
       padding: 6px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-weight: 600;
+      border-radius: var(--radius-pill);
+      font-size: 11.5px;
+      font-weight: 700;
       font-family: inherit;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       transition: var(--transition);
-      margin-top: 10px;
+      align-self: flex-start;
     }
 
     .multi-location-toggle:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffffff;
+      background: #EAE3D2;
+      color: var(--primary);
     }
 
     .per-file-locations-box {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--card-border);
       display: none;
     }
 
@@ -482,10 +892,10 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      background: #080c16;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: #F9F7F2;
+      border: 1px solid var(--card-border);
       padding: 8px 12px;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-md);
       margin-bottom: 8px;
       font-size: 13px;
       flex-wrap: wrap;
@@ -507,11 +917,11 @@
 
     /* REPORT TEMPLATE BOX */
     .report-box {
-      background: #030712;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
       border-radius: var(--radius-md);
       padding: 20px;
-      margin-bottom: 20px;
+      box-shadow: 0 4px 14px rgba(21, 36, 35, 0.25);
     }
 
     .report-header-row {
@@ -524,24 +934,24 @@
     }
 
     .btn-copy-report {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: #ffffff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: var(--radius-sm);
+      background: var(--accent-yellow);
+      color: #452402;
+      border: 1px solid #E5C365;
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       font-family: inherit;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       transition: var(--transition);
     }
 
     .btn-copy-report:hover {
-      background: linear-gradient(135deg, #34d399, #10b981);
+      background: #F3D26A;
       transform: translateY(-1px);
     }
 
@@ -549,109 +959,39 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       line-height: 1.7;
-      color: #e2e8f0;
+      color: var(--code-text);
       white-space: pre-wrap;
       word-break: break-word;
     }
 
-    /* DAILY SUMMARY TABLE */
-    .daily-table-wrapper {
-      background: #0d1322;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-md);
-      overflow-x: auto;
-      margin-bottom: 20px;
-    }
-
-    .daily-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      text-align: left;
-    }
-
-    .daily-table th {
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-muted);
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .daily-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      color: var(--text-main);
-    }
-
-    .daily-table tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-      cursor: pointer;
-    }
-
-    .dur-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      color: #34d399;
-      background: rgba(52, 211, 153, 0.12);
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      display: inline-block;
-      white-space: nowrap;
-    }
-
-    .time-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.04);
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 12px;
-      margin-top: 14px;
-      margin-bottom: 18px;
-    }
-
-    .stat-card {
-      background: rgba(13, 19, 34, 0.7);
+    /* COLLAPSIBLE FILE DETAILS */
+    .file-details-collapse {
+      background: #FAF8F2;
       border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
       padding: 12px 16px;
-      transition: var(--transition);
     }
 
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
+    .file-details-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
       font-weight: 700;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      font-size: 13px;
+      color: var(--text-main);
+      user-select: none;
     }
 
-    .stat-value {
-      font-size: 18px;
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .stat-highlight {
-      color: #38bdf8;
+    .file-details-summary::-webkit-details-marker {
+      display: none;
     }
 
     .file-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .file-row {
@@ -660,9 +1000,9 @@
       justify-content: space-between;
       gap: 12px;
       padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      background: #0d1322;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
       font-size: 13px;
       flex-wrap: wrap;
     }
@@ -678,13 +1018,13 @@
     .file-idx {
       font-weight: 700;
       color: var(--text-muted);
-      width: 20px;
+      width: 24px;
     }
 
     .file-name {
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
-      color: #cbd5e1;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -700,25 +1040,12 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
       font-weight: 700;
-      color: #4ade80;
-      background: rgba(74, 222, 128, 0.1);
+      color: var(--state-success-text);
+      background: var(--state-success-bg);
+      border: 1px solid var(--state-success-border);
       padding: 3px 8px;
       border-radius: 4px;
       white-space: nowrap;
-    }
-
-    .code-container {
-      background: var(--code-bg);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-md);
-      padding: 16px 18px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      line-height: 1.65;
-      color: #e2e8f0;
-      white-space: pre-wrap;
-      overflow-x: auto;
-      max-height: 440px;
     }
 
     .alert {
@@ -732,20 +1059,21 @@
     }
 
     .alert-error {
-      background: rgba(244, 63, 94, 0.12);
-      border: 1px solid rgba(244, 63, 94, 0.3);
-      color: #fca5a5;
+      background: var(--state-error-bg);
+      border: 1px solid var(--state-error-border);
+      border-left: 4px solid var(--state-error-accent);
+      color: var(--state-error-text);
     }
 
     .location-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      color: #6ee7b7;
+      background: var(--state-success-bg);
+      border: 1px solid var(--state-success-border);
+      color: var(--state-success-text);
       padding: 8px 14px;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-pill);
       font-size: 13px;
       font-family: 'JetBrains Mono', monospace;
       margin-top: 14px;
@@ -756,26 +1084,47 @@
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #0f172a;
-      border: 1px solid rgba(52, 211, 153, 0.4);
-      color: #6ee7b7;
+      background: #143735;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
       padding: 12px 20px;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-pill);
       font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      font-weight: 600;
+      box-shadow: 0 10px 28px -4px rgba(13, 44, 43, 0.35);
       transform: translateY(100px);
       opacity: 0;
       transition: var(--transition);
       z-index: 100;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+    }
+
+    .toast svg {
+      color: #4ADE80;
     }
 
     .toast.show {
       transform: translateY(0);
       opacity: 1;
+    }
+
+    /* Standard Heroicons class */
+    .hi-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .hi-icon-sm {
+      width: 15px;
+      height: 15px;
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -787,244 +1136,387 @@
     <div class="brand-row">
       <div class="badge-status">
         <span class="status-dot"></span>
-        <span>Client-Side & Server Engine Ready</span>
+        <span>Sistem Siap Digunakan</span>
       </div>
-      <span style="font-size: 12px; color: var(--text-muted);">Bisa Dibuka Siapa Saja di Browser</span>
+      <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Penyimpanan Lokal & Privat • Aman di Laptop Anda</span>
     </div>
-    <h1>Rekap Durasi File .enc & Daily Intern Report</h1>
-    <p class="subtitle">Setiap orang yang membuka web ini dapat langsung memindai SD Card di laptop masing-masing dan menyalin template laporan harian.</p>
+    <h1>Rekap Durasi Kamera & Laporan Harian</h1>
+    <p class="subtitle">Hitung otomatis durasi video (.enc) dari kartu memori kamera, lalu salin format laporan harian dalam hitungan detik.</p>
   </header>
 
-  <!-- PANEL KONTROL DUA METODE -->
+  <!-- LANGKAH 1: PERIZINAN AKSES KARTU SD -->
   <section class="card-panel">
-    <div class="section-title">
-      <span>🚀</span>
-      <span>Pemindaian SD Card & Kamera</span>
+    <div class="step-header">
+      <div class="step-header-left">
+        <span class="step-badge">1. Perizinan</span>
+        <span class="step-title">Hubungkan Kartu SD Kamera</span>
+      </div>
     </div>
 
-    <!-- STATUS AKSES KARTU SD (IZIN BROWSER) -->
+    <!-- STATUS BAR AKSES SD CARD -->
     <div class="sd-status-bar" id="sdStatusBar">
       <div class="sd-status-info">
         <span class="sd-status-dot" id="sdStatusDot"></span>
         <div>
-          <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Akses SD Card (Izin Browser Laptop):</div>
-          <div id="sdStatusText" style="font-size: 13px; font-weight: 700; color: #f1f5f9;">Belum Dihubungkan (Perlu Izin Akses Folder)</div>
+          <div id="sdStatusText" style="font-size: 13.5px; font-weight: 700; color: var(--text-main);">Kartu SD Belum Dihubungkan</div>
+          <div id="sdStatusSub" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Cukup pilih Drive kartu SD sekali saja (misal: Drive D:). Browser akan mengingatnya secara otomatis.</div>
         </div>
       </div>
       <div class="sd-status-actions">
         <button type="button" class="btn-sd-connect" id="btnConnectSD" onclick="handleConnectSDCard()">
-          <span>🔌 Beri Izin & Hubungkan SD Card</span>
+          <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.084a4.5 4.5 0 0 0-1.242-7.244l-4.5-4.5a4.5 4.5 0 0 0-6.364 6.364l1.757 1.757"/></svg>
+          <span>Beri Izin & Hubungkan SD Card</span>
         </button>
         <button type="button" class="btn-sd-change" id="btnChangeSD" onclick="handleChangeSDCard()" style="display: none;">
-          <span>🔄 Ganti SD Card</span>
+          <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          <span>Ganti SD Card</span>
         </button>
       </div>
     </div>
 
-    <div class="scan-modes-box">
-      <!-- METODE 1: BROWSER DIRECT -->
-      <div class="mode-card primary">
-        <div>
-          <div style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            <span>🌐</span>
-            <span>Buka SD Card / Folder Manual</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-            Pilih folder SD Card atau folder kamera secara manual jika ingin langsung memindai tanpa filter kode.
-          </p>
+    <!-- PANDUAN RAMAH UNTUK PENGGUNA AWAM -->
+    <div class="sd-guide-box">
+      <div class="sd-guide-icon">
+        <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+      </div>
+      <div class="sd-guide-text">
+        <strong>Panduan Mudah untuk Pengguna:</strong> Saat jendela folder muncul, Anda <strong>cukup klik nama kartu memori / Drive (misal: <code>Drive D:</code> atau <code>SD Card</code>)</strong> di kolom sebelah kiri, lalu klik <strong>Select Folder</strong>.<br>
+        <span style="color: var(--text-muted); font-size: 11.5px;">Anda <u>tidak perlu</u> mencari atau membuka folder di dalamnya (seperti folder recording)—sistem akan otomatis mencari dan merekap filenya sendiri sampai ke dalam.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANGKAH 2: METODE PEMINDAIAN (UTAMAKAN CARA PRAKTIS KODE KAMERA) -->
+  <section class="card-panel">
+    <div class="step-header">
+      <div class="step-header-left">
+        <span class="step-badge">2. Pemindaian</span>
+        <span class="step-title">Pilih Target Rekaman</span>
+      </div>
+    </div>
+
+    <!-- CARA A (UTAMA & PRAKTIS): SCAN KODE KAMERA -->
+    <div class="primary-scan-box">
+      <div>
+        <span class="badge-recommend">Cara Paling Praktis & Cepat</span>
+        <h3 style="font-size: 15px; font-weight: 800; color: var(--primary); margin: 8px 0 4px 0;">Scan Otomatis Berdasarkan Nomor Kamera</h3>
+        <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.55;" id="scanMode2Desc">
+          Ketik 4 digit nomor seri kamera Anda (contoh: 3047) lalu klik Scan Otomatis. Sistem akan otomatis mencari dan merekap file kamera tersebut.
+        </p>
+      </div>
+
+      <div class="scan-action-row">
+        <div class="code-input-wrapper">
+          <span class="code-prefix">atlascm</span>
+          <input type="text" id="camCode" class="code-input" value="3047" maxlength="4" placeholder="3047">
         </div>
-        <button class="btn-folder-pick" id="btnBrowseFolder" onclick="executeBrowserScan()">
-          <span>📁</span>
-          <span>Pilih Folder SD Card Manual</span>
+        <button id="scanBtn" class="btn-auto-scan" onclick="executeBackendScan()">
+          <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
+          <span id="btnText">Scan Otomatis</span>
         </button>
       </div>
 
-      <!-- METODE 2: SCAN KAMERA BERDASARKAN KODE -->
-      <div class="mode-card">
+      <!-- STATUS LOG TERSIMPAN DI BAWAH SCAN -->
+      <div id="savedLogsQuickNotice" style="display: none; margin-top: 14px; background: #E6F5F4; border: 1px solid #B2D8D6; border-radius: var(--radius-sm); padding: 8px 14px; font-size: 12px; color: var(--primary); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <span id="savedLogsNoticeText" style="font-weight: 600;"></span>
+        <button type="button" class="btn-sd-change" onclick="scrollToLogSection()" style="padding: 3px 10px; font-size: 11px;">
+          <span>Buka Riwayat Log &darr;</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PEMISAH PILIHAN -->
+    <div class="or-divider">
+      <span>atau pilih folder kartu sd secara manual</span>
+    </div>
+
+    <!-- CARA B (MANUAL): PILIH FOLDER -->
+    <div class="manual-scan-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
-          <div style="font-size: 14px; font-weight: 800; color: #93c5fd; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            <span>⚡</span>
-            <span>Scan Otomatis Berdasarkan Kode Kamera</span>
+          <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+            <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>
+            <span>Buka SD Card / Folder Manual</span>
           </div>
-          <p id="scanMode2Desc" style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-            Ketik 4 digit nomor seri kamera (misal: 3374) -> klik Scan Otomatis. Sistem akan otomatis mencari dan merekap file kamera tersebut!
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <div class="code-input-wrapper" style="flex: 1;">
-            <span class="code-prefix">atlascm</span>
-            <input type="text" id="camCode" class="code-input" value="3047" maxlength="4" placeholder="3047">
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            Pilih folder secara manual jika Anda ingin langsung merekap seluruh file tanpa memfilter kode kamera.
           </div>
-          <button id="scanBtn" class="btn-auto-scan" onclick="executeBackendScan()">
-            <span id="btnText">Scan Otomatis</span>
-          </button>
         </div>
+        <button class="btn-sd-change" id="btnBrowseFolder" onclick="executeBrowserScan()">
+          <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>
+          <span>Pilih Folder Manual</span>
+        </button>
       </div>
     </div>
     <input type="file" id="fallbackFolderInput" webkitdirectory directory multiple style="display: none;">
 
-    <!-- PENGATURAN PROFIL PELAPOR -->
-    <div class="report-profile-card">
-      <div style="font-size: 12px; font-weight: 700; color: #93c5fd; margin-bottom: 8px;">
-        👤 Profil Pelapor (Tersimpan Otomatis di Browser Masing-Masing):
-      </div>
-      <div class="profile-grid">
-        <div>
-          <label style="font-size: 11px; margin-bottom: 2px;">Nama Anda</label>
-          <input type="text" id="profName" placeholder="Ketik nama Anda" value="Mohamad Dwi Affriza">
-        </div>
-        <div>
-          <label style="font-size: 11px; margin-bottom: 2px;">Role Operasional</label>
-          <input type="text" id="profRole" value="Recording Operations & Data QA">
-        </div>
-        <div>
-          <label style="font-size: 11px; margin-bottom: 2px;">Kamera Dibawa / Aktif</label>
-          <div style="display: flex; gap: 6px;">
-            <input type="text" id="profCamBawa" value="1" style="width: 50%;" title="Jumlah kamera dibawa">
-            <input type="text" id="profCamAktif" value="1" style="width: 50%;" title="Jumlah kamera aktif">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="alertBox" class="alert alert-error"></div>
+    <div id="alertBox" class="alert"></div>
     <div id="locationBadge" class="location-badge" style="display: none;"></div>
   </section>
 
-  <!-- HASIL ANALISIS DENGAN TAB PER TANGGAL -->
-  <section class="card-panel" id="resultCard" style="display: none;">
-    
-    <!-- NAVIGASI TAB PER TANGGAL -->
-    <div class="date-tabs-nav" id="dateTabsNav"></div>
-
-    <!-- KONTEN TAB: SEMUA TANGGAL (RINGKASAN TOTAL) -->
-    <div id="tabContentAll" class="tab-content-panel">
-      <div class="section-title">
-        <span>📊</span>
-        <span>Ringkasan Seluruh Tanggal</span>
+  <!-- LANGKAH 3: PROFIL PELAPOR -->
+  <section class="card-panel">
+    <div class="step-header">
+      <div class="step-header-left">
+        <span class="step-badge">3. Profil</span>
+        <span class="step-title">Profil Pelapor</span>
       </div>
+      <span class="profile-tag">Tersimpan Otomatis di Browser</span>
+    </div>
+    <div class="profile-grid" style="margin-top: 10px;">
+      <div>
+        <label style="font-size: 11px; margin-bottom: 3px; color: var(--text-muted); font-weight: 600; display: block;">Nama Lengkap</label>
+        <input type="text" id="profName" placeholder="Ketik nama Anda" value="Mohamad Fadli">
+      </div>
+      <div>
+        <label style="font-size: 11px; margin-bottom: 3px; color: var(--text-muted); font-weight: 600; display: block;">Peran / Posisi</label>
+        <input type="text" id="profRole" placeholder="Contoh: Recording Operations & Data QA" value="Recording Operations & Data QA">
+      </div>
+      <div>
+        <label style="font-size: 11px; margin-bottom: 3px; color: var(--text-muted); font-weight: 600; display: block;">Kamera Dibawa</label>
+        <input type="text" id="profCamBawa" placeholder="1" value="1">
+      </div>
+      <div>
+        <label style="font-size: 11px; margin-bottom: 3px; color: var(--text-muted); font-weight: 600; display: block;">Kamera Aktif</label>
+        <input type="text" id="profCamAktif" placeholder="1" value="1">
+      </div>
+    </div>
+  </section>
 
+  <!-- RIWAYAT LOG & PENGGABUNGAN MULTI-KAMERA (OPSIONAL) -->
+  <section class="card-panel" id="logHistorySection" style="display: none;">
+    <div class="step-header">
+      <div class="step-header-left">
+        <span class="step-badge" style="background: var(--accent-teal);">Riwayat Log</span>
+        <span class="step-title">Riwayat Log Kamera & Penggabungan Hasil</span>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;" id="logHistorySummaryText">
+        0 Log Tersimpan
+      </div>
+    </div>
+
+    <!-- PANDUAN RINGKAS CARA GABUNG -->
+    <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.55;">
+      Sistem otomatis menyimpan riwayat setiap kamera yang Anda deteksi. Anda bisa melihat hasil kamera secara terpisah, atau centang 2 kamera atau lebih (misal: <strong>kamera 3047</strong> dan <strong>3447</strong>) lalu klik <strong>Gabungkan Log</strong> untuk menyatukan rekap pada tanggal yang sama.
+    </div>
+
+    <!-- DAFTAR LOG ITEM -->
+    <div id="logItemsListContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+    <!-- ACTION BUTTONS UNTUK GABUNGKAN -->
+    <div class="log-actions-bar">
+      <button type="button" class="btn-sd-change" onclick="clearAllScanLogs()" style="color: var(--state-error-text); border-color: var(--state-error-border);">
+        <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+        <span>Bersihkan Semua Log</span>
+      </button>
+      <button type="button" class="btn-auto-scan" id="btnMergeLogs" onclick="mergeSelectedLogs()">
+        <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+        <span>Gabungkan Log Kamera Terpilih</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- LANGKAH 4: HASIL REKAP & LAPORAN HARIAN -->
+  <section class="card-panel" id="resultCard">
+    <div class="step-header">
+      <div class="step-header-left">
+        <span class="step-badge">4. Hasil & Laporan</span>
+        <span class="step-title" id="stepResultTitle">Hasil Rekap Durasi & Template Laporan</span>
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER KETIKA BELUM SCAN (SECTION 4 TETAP TERLIHAT) -->
+    <div id="resultEmptyPlaceholder" style="background: #FAF8F2; border: 1.5px dashed var(--card-border); border-radius: var(--radius-md); padding: 36px 20px; text-align: center; margin-top: 10px;">
+      <svg class="hi-icon" style="width: 38px; height: 38px; color: var(--text-muted); margin: 0 auto 12px auto; display: block;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+      </svg>
+      <div style="font-size: 14.5px; font-weight: 700; color: var(--text-main); margin-bottom: 5px;">Hasil Rekapitulasi Kamera</div>
+      <div style="font-size: 12.5px; color: var(--text-muted); max-width: 480px; margin: 0 auto; line-height: 1.55;">
+        Hasil perhitungan jam kerja, rincian per tanggal, dan template laporan siap kirim akan langsung tampil di sini. Masukkan nomor kamera di Langkah 2 lalu klik <strong>Scan Otomatis</strong>.
+      </div>
+    </div>
+
+    <!-- WRAPPER KONTEN HASIL AKTIF (DITAMPILKAN SAAT ADA DATA SCAN) -->
+    <div id="resultActiveContent" style="display: none; margin-top: 10px;">
+
+    <!-- BANNER JIKA MENAMPILKAN HASIL GABUNGAN -->
+    <div id="mergedStatusBanner" style="display: none; margin-bottom: 14px; background: #E6F5F4; border: 1.5px solid #3AA39E; border-radius: var(--radius-md); padding: 10px 16px; font-size: 13px; font-weight: 700; color: var(--primary); justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+        <span id="mergedStatusBannerText">Menampilkan Rekap Gabungan Multi-Kamera</span>
+      </div>
+      <button type="button" class="btn-sd-change" onclick="scrollToLogSection()" style="padding: 4px 12px; font-size: 11.5px;">
+        <span>Pilih Ulang Kamera</span>
+      </button>
+    </div>
+
+    <!-- DATE TABS NAVIGATION (PILIH TANGGAL) -->
+    <div class="date-tabs-nav" id="dateTabsNav">
+      <!-- Diisi otomatis oleh JavaScript -->
+    </div>
+
+    <!-- KONTEN TAB: SEMUA TANGGAL (GRAND SUMMARY) -->
+    <div id="tabContentAll" class="tab-content-panel">
+      <!-- STATS SUMMARY CARDS -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Total Actual Hours</div>
-          <div class="stat-value stat-highlight" id="statGrandTotal">-</div>
+          <div class="stat-label">Total Jam Kerja</div>
+          <div class="stat-value stat-highlight" id="statGrandHours">0 Jam</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Total Jam Desimal</div>
-          <div class="stat-value" id="statGrandHours">-</div>
+          <div class="stat-label">Format Durasi (H M S)</div>
+          <div class="stat-value" id="statGrandTotal">0 H 0 M 0 S</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Rentang Tanggal</div>
+          <div class="stat-label">Total File Video</div>
+          <div class="stat-value" id="statFilesCount">0 File</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Rentang Waktu Rekaman</div>
           <div class="stat-value" id="statRange">-</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total File .enc</div>
-          <div class="stat-value" id="statFilesCount">-</div>
         </div>
       </div>
 
+      <!-- TABEL REKAP PER HARI -->
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Ringkasan per Tanggal:</span>
+        <span style="font-size: 11.5px; color: var(--text-muted);">Pilih baris tanggal untuk membuat laporan harian</span>
+      </div>
       <div class="daily-table-wrapper">
         <table class="daily-table">
           <thead>
             <tr>
               <th>Tanggal</th>
               <th>Rentang Jam</th>
-              <th>File</th>
-              <th>Durasi (H M S)</th>
-              <th>Aksi</th>
+              <th>Jumlah File</th>
+              <th>Total Durasi</th>
+              <th>Tindakan</th>
             </tr>
           </thead>
           <tbody id="dailySummaryBody"></tbody>
         </table>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <span style="font-size: 13px; font-weight: 700; color: var(--text-muted);">Format Asli (Console Log):</span>
-        <button class="btn-copy-report" onclick="copyResultText(lastRawText, 'Format teks asli berhasil disalin!')" style="padding: 6px 14px; font-size: 12px;">
-          <span>📋</span> Salin Format Asli
-        </button>
-      </div>
-      <div class="code-container" id="codeOutput"></div>
+      <!-- FORMAT REKAP MENTAH (ACCORDION / DETAILS) -->
+      <details class="raw-log-details">
+        <summary class="raw-log-summary">
+          <span>Format Rekap Mentah (Log File Teks)</span>
+          <button type="button" class="btn-sd-change" onclick="event.stopPropagation(); copyResultText(lastRawText, 'Format teks mentah berhasil disalin!')" style="padding: 4px 12px; font-size: 11px;">
+            <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/></svg>
+            <span>Salin Teks Mentah</span>
+          </button>
+        </summary>
+        <div class="code-container" id="codeOutput"></div>
+      </details>
     </div>
 
     <!-- KONTEN TAB: DETAIL TANGGAL SPESIFIK -->
     <div id="tabContentSingle" class="tab-content-panel" style="display: none;">
-      
-      <!-- PENGATURAN LOKASI MANUAL BERDASARKAN JAM REKAMAN -->
-      <div class="location-card-container">
-        <div class="location-header">
-          <span style="font-size: 13px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-            <span>📍</span>
-            <span>Isi Lokasi / Tempat Rekaman:</span>
-          </span>
+      <div class="single-date-box">
+        
+        <!-- HEADER INFO TANGGAL -->
+        <div class="single-date-header-card">
+          <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+            <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+            <span id="singleDateBannerTitle">Pengaturan Laporan Tanggal</span>
+          </div>
           <span class="timeline-pill" id="dateTimelinePill">
-            <span>⏰</span>
+            <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
             <span id="dateTimelineText">09:08:32 - 16:00:44 (5 file)</span>
           </span>
         </div>
 
-        <div class="location-input-row">
-          <div style="flex: 1; min-width: 240px;">
-            <input type="text" id="singleDateLocationInput" placeholder="Ketik nama lokasi (misal: Kedai QQ)" value="Kedai QQ">
+        <!-- PENGATURAN LOKASI & CATATAN -->
+        <div class="single-input-grid">
+          <div class="input-group-card">
+            <div class="input-group-label">
+              <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+              <span>Lokasi Pengambilan Video</span>
+            </div>
+            <input type="text" id="singleDateLocationInput" placeholder="Contoh: Kedai QQ, Taman Kota, Gedung A" value="Kedai QQ">
+            <button type="button" class="multi-location-toggle" id="btnToggleMultiLoc" onclick="toggleMultiLocationView()">
+              <span id="toggleMultiLocIcon"><svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15m7.5-7.5h-15"/></svg></span>
+              <span id="toggleMultiLocText">Atur lokasi berbeda untuk jam tertentu</span>
+            </button>
+            <div class="per-file-locations-box" id="perFileLocBox">
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">
+                <em>Gunakan kolom di bawah jika Anda berpindah lokasi di jam-jam tertentu:</em>
+              </div>
+              <div id="fileLocListContainer"></div>
+            </div>
           </div>
-          <button type="button" class="multi-location-toggle" id="btnToggleMultiLoc" onclick="toggleMultiLocationView()">
-            <span id="toggleMultiLocIcon">➕</span>
-            <span id="toggleMultiLocText">Pecah Lokasi Berdasarkan Jam File</span>
-          </button>
-        </div>
 
-        <!-- Opsi pelabelan per file/jam jika pindah lokasi -->
-        <div class="per-file-locations-box" id="perFileLocBox">
-          <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">
-            💡 <em>Isi lokasi berbeda pada file di bawah jika Anda berpindah tempat di jam tertentu:</em>
+          <div class="input-group-card">
+            <div class="input-group-label">
+              <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+              <span>Catatan Tambahan (Opsional)</span>
+            </div>
+            <textarea id="singleDateNotesInput" rows="3" placeholder="Contoh: Perekaman sempat terjeda 15 menit karena hujan lebat..." style="resize: vertical;"></textarea>
           </div>
-          <div id="fileLocListContainer"></div>
         </div>
 
-        <!-- Catatan Tambahan -->
-        <div style="margin-top: 12px;">
-          <label style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Catatan Tambahan Hari Ini (Opsional):</label>
-          <input type="text" id="singleDateNotesInput" placeholder="Ketik catatan (kosongkan jika tidak ada)">
-        </div>
-      </div>
-
-      <!-- REPORT TEMPLATE SIAP SALIN (PER TANGGAL) -->
-      <div class="report-box">
-        <div class="report-header-row">
-          <div>
-            <span style="font-size: 13px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em;" id="singleReportHeaderTitle">
-              ✨ Daily Intern Report Siap Salin (Per Tanggal):
-            </span>
+        <!-- REPORT TEMPLATE SIAP SALIN -->
+        <div class="report-box">
+          <div class="report-header-row">
+            <div>
+              <span style="font-size: 13.5px; font-weight: 800; color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 6px;" id="singleReportHeaderTitle">
+                <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-12a3.75 3.75 0 0 0-3.75-3.75h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.75 3.75 0 0 0-3.75-3.75Z"/><path d="m9 13.5 2.25 2.25 4.5-4.5"/></svg>
+                <span>Format Laporan Harian (Siap Kirim):</span>
+              </span>
+            </div>
+            <button class="btn-copy-report" id="btnCopySingleReport" onclick="copyCurrentSingleReport()">
+              <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 8.25 2.25h7.5c1.03 0 1.9.693 2.166 1.638m-11.916 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184M9 12.75 11.25 15 15 9.75"/></svg>
+              <span id="btnCopySingleReportText">Salin Format Laporan</span>
+            </button>
           </div>
-          <button class="btn-copy-report" id="btnCopySingleReport" onclick="copyCurrentSingleReport()">
-            <span>📋</span>
-            <span id="btnCopySingleReportText">Salin Laporan Tanggal Ini</span>
-          </button>
+          <pre class="report-pre" id="singleReportPreview"></pre>
         </div>
-        <pre class="report-pre" id="singleReportPreview"></pre>
-      </div>
 
-      <!-- DETAIL FILE PADA TANGGAL INI -->
-      <div class="section-title" style="margin-top: 20px;">
-        <span>📁</span>
-        <span id="singleDateDetailTitle">Rincian File Rekaman</span>
+        <!-- DETAIL FILE PADA TANGGAL INI (COLLAPSIBLE) -->
+        <details class="file-details-collapse">
+          <summary class="file-details-summary">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+              <span id="singleDateDetailTitle">Rincian File Video Pada Tanggal Ini</span>
+            </div>
+            <span style="font-size: 11.5px; color: var(--text-muted); font-weight: normal;">Klik untuk lihat file</span>
+          </summary>
+          <div class="file-list" id="singleFileList"></div>
+        </details>
       </div>
-      <div class="file-list" id="singleFileList"></div>
     </div>
+    </div> <!-- close resultActiveContent -->
 
   </section>
 </div>
 
 <div id="toast" class="toast">
-  <span>✅</span>
+  <svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
   <span id="toastText">Format laporan berhasil disalin!</span>
 </div>
-
 <script>
+  // Heroicons standard UI definitions
+  const ICONS = {
+    folder: `<svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>`,
+    folderOpen: `<svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>`,
+    chart: `<svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>`,
+    calendar: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>`,
+    plus: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>`,
+    minus: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>`,
+    arrowRight: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>`,
+    checkCircle: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`,
+    documentCheck: `<svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-12a3.75 3.75 0 0 0-3.75-3.75h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.75 3.75 0 0 0-3.75-3.75Z"/><path d="m9 13.5 2.25 2.25 4.5-4.5"/></svg>`,
+    warning: `<svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`,
+    merge: `<svg class="hi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>`,
+    trash: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>`,
+    camera: `<svg class="hi-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>`
+  };
+
   let lastRawText = "";
   let scanData = null;
   let activeTabDate = "ALL";
   let isMultiLocOpen = false;
+
 
   const INDO_MONTHS = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
@@ -1045,8 +1537,8 @@
   }
 
   function formatIndoDurationSec(totalSec) {
-    const s = Math.floor(totalSec % 60);
-    const m = Math.floor((totalSec / 60) % 60);
+    const s = String(Math.floor(totalSec % 60)).padStart(2, '0');
+    const m = String(Math.floor((totalSec / 60) % 60)).padStart(2, '0');
     const h = Math.floor(totalSec / 3600);
     return `${h} jam ${m} menit ${s} detik.`;
   }
@@ -1141,9 +1633,9 @@
       }
     }
 
-    let badgeText = `<span>📁 Memindai SD Card:</span> <strong>${folderName}</strong>`;
+    let badgeText = `${ICONS.folder} <span>Memindai SD Card:</span> <strong>${folderName}</strong>`;
     if (filterCode) {
-      badgeText = `<span>📁 Kamera atlascm${filterCode}:</span> <strong>${folderName}</strong>` + (isFiltered ? ` (${encKeys.length} file)` : '');
+      badgeText = `${ICONS.folder} <span>Kamera atlascm${filterCode}:</span> <strong>${folderName}</strong>` + (isFiltered ? ` (${encKeys.length} file)` : '');
     }
     locationBadge.innerHTML = badgeText;
     locationBadge.style.display = 'inline-flex';
@@ -1181,12 +1673,14 @@
       const durationSeconds = Math.max(0, (endTime.getTime() - startTime.getTime()) / 1000);
       const dateKey = formatDateYYYYMMDD(startTime);
 
+      const detectedCam = filterCode || extractCamCode(encFile.name, folderName) || "3047";
       if (!groupedData[dateKey]) groupedData[dateKey] = [];
       groupedData[dateKey].push({
         file: encFile.name,
         start: startTime,
         end: endTime,
-        duration_seconds: durationSeconds
+        duration_seconds: durationSeconds,
+        camera_code: detectedCam
       });
     }
 
@@ -1240,7 +1734,8 @@
         duration_indo: formatIndoDurationSec(it.duration_seconds),
         duration_seconds: it.duration_seconds,
         start: formatTimeHHMMSS(it.start),
-        end: formatTimeHHMMSS(it.end)
+        end: formatTimeHHMMSS(it.end),
+        camera_code: it.camera_code || filterCode || "Kamera"
       }));
 
       formattedGroups.push({
@@ -1311,8 +1806,10 @@
       switchDateTab('ALL');
     }
 
-    resultCard.style.display = 'block';
-    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    activateResultView();
+
+    // Simpan otomatis ke riwayat log
+    saveScanLog(scanData, filterCode, folderName);
   }
 
   // ==============================================================
@@ -1411,12 +1908,14 @@
     const bar = document.getElementById('sdStatusBar');
     const dot = document.getElementById('sdStatusDot');
     const text = document.getElementById('sdStatusText');
+    const sub = document.getElementById('sdStatusSub');
     const btnConnect = document.getElementById('btnConnectSD');
     const btnChange = document.getElementById('btnChangeSD');
 
     if (bar) bar.classList.add('connected');
     if (dot) dot.classList.add('green');
-    if (text) text.innerHTML = `🟢 Terhubung ke: <strong>${folderName}</strong> <span style="font-size: 11px; color: #34d399; font-weight: normal;">(Izin Aktif - Siap Scan Otomatis)</span>`;
+    if (text) text.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;color:var(--state-success-text);font-weight:700;">${ICONS.checkCircle} Kartu SD Terhubung: <strong>${folderName}</strong></span>`;
+    if (sub) sub.innerHTML = `<span style="color: var(--state-success-text); font-weight: 500;">Izin akses aktif. Anda tinggal memasukkan kode kamera di Langkah 2 untuk scan otomatis.</span>`;
     if (btnConnect) btnConnect.style.display = 'none';
     if (btnChange) btnChange.style.display = 'inline-flex';
   }
@@ -1425,12 +1924,14 @@
     const bar = document.getElementById('sdStatusBar');
     const dot = document.getElementById('sdStatusDot');
     const text = document.getElementById('sdStatusText');
+    const sub = document.getElementById('sdStatusSub');
     const btnConnect = document.getElementById('btnConnectSD');
     const btnChange = document.getElementById('btnChangeSD');
 
     if (bar) bar.classList.remove('connected');
     if (dot) dot.classList.remove('green');
-    if (text) text.innerHTML = `Belum Diberi Izin Akses <span style="font-size: 11px; color: #f59e0b; font-weight: normal;">(Cukup beri izin 1x, browser akan mengingatnya)</span>`;
+    if (text) text.innerHTML = `<span style="font-weight: 700; color: var(--state-warning-text);">Kartu SD Belum Dihubungkan</span>`;
+    if (sub) sub.innerHTML = `<span style="color: var(--state-warning-text);">Cukup pilih Drive kartu SD sekali saja (misal: Drive D:). Browser akan mengingatnya secara otomatis.</span>`;
     if (btnConnect) btnConnect.style.display = 'inline-flex';
     if (btnChange) btnChange.style.display = 'none';
   }
@@ -1446,7 +1947,7 @@
       currentSDHandle = dirHandle;
       await saveDirectoryHandle(dirHandle);
       setSDCardConnectedUI(dirHandle.name);
-      showToast(`✅ SD Card / Folder "${dirHandle.name}" terhubung! Izin telah tersimpan.`);
+      showToast(`Folder "${dirHandle.name}" berhasil terhubung dan siap dipindai!`);
       return dirHandle;
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -1559,18 +2060,15 @@
     locationBadge.style.display = 'none';
 
     if (!code || code.length !== 4) {
-      showAlert("⚠️ Mohon masukan 4 digit nomor seri kamera dengan benar (contoh: 3047).");
+      showAlert("Nomor kamera belum sesuai. Masukkan 4 digit angka nomor kamera (contoh: 3047).");
       return;
     }
 
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const isFile = window.location.protocol === 'file:';
+    scanBtn.disabled = true;
+    btnText.textContent = "Memindai...";
 
-    // JIKA DIAKSES DARI WEB ONLINE (VERCEL / LAPTOP TEMAN):
-    if (!isLocalhost && !isFile) {
-      scanBtn.disabled = true;
-      btnText.textContent = "Scanning...";
-
+    // 1. CARA UTAMA (CLIENT-SIDE): Gunakan SD Card yang sudah diberi izin langsung di browser
+    if (window.showDirectoryPicker) {
       try {
         let handle = currentSDHandle || await getSavedDirectoryHandle();
         let hasPerm = false;
@@ -1589,91 +2087,69 @@
           }
         }
 
-        // Scan otomatis secara instan dari SD Card yang tersimpan!
+        // Pindai file atlascm{code} secara instan dari kartu SD
         await scanFromDirectoryHandle(handle, code);
+        scanBtn.disabled = false;
+        btnText.textContent = "Scan Otomatis";
+        return;
 
       } catch (err) {
         if (err.name !== 'AbortError') {
-          showAlert(`Kendala saat memindai: ${err.message}`);
-        }
-      } finally {
-        scanBtn.disabled = false;
-        btnText.textContent = "Scan Otomatis";
-      }
-      return;
-    }
-
-    // JIKA DIAKSES SECARA LOKAL (LOCALHOST / PYTHON SERVER):
-    scanBtn.disabled = true;
-    btnText.textContent = "Mencari...";
-
-    try {
-      let apiUrl = `/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
-      if (isFile) {
-        apiUrl = `http://localhost:8000/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
-      }
-
-      let res;
-      try {
-        res = await fetch(apiUrl);
-      } catch (e1) {
-        if (!apiUrl.startsWith('http://localhost:8000')) {
-          res = await fetch(`http://localhost:8000/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`);
+          console.warn("Scan direct handle gagal, mencoba alternatif:", err);
         } else {
-          throw e1;
+          scanBtn.disabled = false;
+          btnText.textContent = "Scan Otomatis";
+          return;
         }
       }
-
-      const contentType = res.headers.get('content-type') || '';
-      if (!res.ok || !contentType.includes('application/json')) {
-        throw new Error("Backend server Python lokal tidak aktif atau respons bukan JSON.");
-      }
-
-      const data = await res.json();
-
-      if (!data.success) {
-        showAlert(data.error || "Gagal memindai folder kamera.");
-        resultCard.style.display = 'none';
-        return;
-      }
-
-      scanData = data;
-      lastRawText = data.raw_text;
-
-      locationBadge.innerHTML = `<span>📁 Ditemukan di:</span> <strong>${data.target_folder}</strong>`;
-      locationBadge.style.display = 'inline-flex';
-
-      document.getElementById('statGrandTotal').textContent = data.grand_total_hms;
-      document.getElementById('statGrandHours').textContent = `${data.grand_total_hours} Jam`;
-      document.getElementById('statRange').textContent = `Total ${data.range_label}`;
-      document.getElementById('statFilesCount').textContent = `${data.found_files} File`;
-      document.getElementById('codeOutput').textContent = data.raw_text;
-
-      renderDateTabs(data.summary_per_date);
-      renderDailySummaryTable(data.summary_per_date);
-
-      if (data.summary_per_date.length > 0) {
-        switchDateTab(data.summary_per_date[data.summary_per_date.length - 1].date);
-      } else {
-        switchDateTab('ALL');
-      }
-
-      resultCard.style.display = 'block';
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    } catch (err) {
-      showAlert(
-        `Kendala koneksi backend: ${err.message}.\n\n` +
-        `💡 CARA PALING MUDAH (TANPA PYTHON):\n` +
-        `Gunakan tombol "Beri Izin & Hubungkan SD Card" di atas untuk menghubungkan kartu SD kamera Anda sekali saja.\n\n` +
-        `Jika ingin fitur "Scan Otomatis Seluruh Drive":\n` +
-        `• Pastikan server backend sudah berjalan via "start_web_app.bat" (http://localhost:8000).`,
-        true
-      );
-    } finally {
-      scanBtn.disabled = false;
-      btnText.textContent = "Scan Otomatis";
     }
+
+    // 2. ALTERNATIF LOKAL: Jika menggunakan server Python lokal di localhost:8000
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isFile = window.location.protocol === 'file:';
+
+    if (isLocalhost || isFile) {
+      try {
+        let apiUrl = `/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
+        if (isFile) {
+          apiUrl = `http://localhost:8000/api/scan?drive=AUTO&code=${encodeURIComponent(code)}`;
+        }
+
+        const res = await fetch(apiUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            scanData = data;
+            lastRawText = data.raw_text;
+            locationBadge.innerHTML = `${ICONS.folder} <span>Folder Ditemukan:</span> <strong>${data.target_folder}</strong>`;
+            locationBadge.style.display = 'inline-flex';
+            document.getElementById('statGrandTotal').textContent = data.grand_total_hms;
+            document.getElementById('statGrandHours').textContent = `${data.grand_total_hours} Jam`;
+            document.getElementById('statRange').textContent = `Total ${data.range_label}`;
+            document.getElementById('statFilesCount').textContent = `${data.found_files} File`;
+            document.getElementById('codeOutput').textContent = data.raw_text;
+            renderDateTabs(data.summary_per_date);
+            renderDailySummaryTable(data.summary_per_date);
+            if (data.summary_per_date.length > 0) {
+              switchDateTab(data.summary_per_date[data.summary_per_date.length - 1].date);
+            } else {
+              switchDateTab('ALL');
+            }
+            resultCard.style.display = 'block';
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            saveScanLog(data, code, data.target_folder);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Backend Python lokal tidak aktif:", e);
+      }
+    }
+
+    // 3. JIKA BELUM TERHUBUNG: Pandu pengguna
+    showAlert("Kartu SD belum terhubung. Silakan klik tombol 'Beri Izin & Hubungkan SD Card' di Langkah 1 terlebih dahulu.", true);
+    scanBtn.disabled = false;
+    btnText.textContent = "Scan Otomatis";
   }
 
   function renderDateTabs(summaryList) {
@@ -1683,7 +2159,7 @@
     const allBtn = document.createElement('button');
     allBtn.className = 'date-tab-item active';
     allBtn.id = 'tabNav_ALL';
-    allBtn.innerHTML = `<span>📊 Semua Tanggal</span> <span class="tab-badge">${summaryList.length} hari</span>`;
+    allBtn.innerHTML = `${ICONS.chart} <span>Semua Tanggal</span> <span class="tab-badge">${summaryList.length} hari</span>`;
     allBtn.onclick = () => switchDateTab('ALL');
     nav.appendChild(allBtn);
 
@@ -1691,7 +2167,7 @@
       const btn = document.createElement('button');
       btn.className = 'date-tab-item';
       btn.id = `tabNav_${s.date}`;
-      btn.innerHTML = `<span>📅 ${s.date_indo}</span> <span class="tab-badge">${s.file_count} file</span>`;
+      btn.innerHTML = `${ICONS.calendar} <span>${s.date_indo}</span> <span class="tab-badge">${s.file_count} file</span>`;
       btn.onclick = () => switchDateTab(s.date);
       nav.appendChild(btn);
     });
@@ -1725,12 +2201,12 @@
 
     if (isMultiLocOpen) {
       box.style.display = 'block';
-      icon.textContent = '➖';
-      text.textContent = 'Sembunyikan Pemecahan Lokasi';
+      icon.innerHTML = ICONS.minus;
+      text.textContent = 'Gunakan satu lokasi untuk semua';
     } else {
       box.style.display = 'none';
-      icon.textContent = '➕';
-      text.textContent = 'Pecah Lokasi Berdasarkan Jam File';
+      icon.innerHTML = ICONS.plus;
+      text.textContent = 'Atur lokasi berbeda untuk jam tertentu';
     }
   }
 
@@ -1742,14 +2218,22 @@
 
     const name = document.getElementById('profName').value.trim() || "Nama";
     const role = document.getElementById('profRole').value.trim() || "Recording Operations & Data QA";
-    const camBawa = document.getElementById('profCamBawa').value.trim() || "1";
-    const camAktif = document.getElementById('profCamAktif').value.trim() || "1";
-    const notes = document.getElementById('singleDateNotesInput').value.trim();
 
+    // Hitung jumlah kamera aktif pada tanggal ini
+    const activeCams = [...new Set(group.items.map(it => it.camera_code).filter(c => c && c !== 'Kamera'))];
+    let camBawa = document.getElementById('profCamBawa').value.trim() || "1";
+    let camAktif = document.getElementById('profCamAktif').value.trim() || "1";
+
+    // Jika ada lebih dari 1 kamera pada tanggal ini (hasil gabungan), set camAktif otomatis
+    if (activeCams.length > 1) {
+      camAktif = String(activeCams.length);
+    }
+
+    const notes = document.getElementById('singleDateNotesInput').value.trim();
     const mainLocation = document.getElementById('singleDateLocationInput').value.trim() || "Kedai QQ";
 
+    // Petakan lokasi dan durasinya
     const locMap = {};
-
     group.items.forEach((item, idx) => {
       const fileLocInput = document.getElementById(`fileLocInput_${dateKey}_${idx}`);
       const loc = (fileLocInput && fileLocInput.value.trim()) ? fileLocInput.value.trim() : mainLocation;
@@ -1760,20 +2244,22 @@
     });
 
     const locations = Object.keys(locMap);
-    let actualHoursText = "";
+    let lokasiText = "";
 
-    if (locations.length <= 1) {
-      const locName = locations[0] || mainLocation;
-      actualHoursText = `📍${locName}\n${summary.total_indo}`;
+    if (locations.length === 0) {
+      lokasiText = `- ${mainLocation} : ${formatIndoDurationSec(summary.total_seconds)}`;
     } else {
-      actualHoursText = locations.map(loc => {
-        return `📍${loc}\n${formatIndoDurationSec(locMap[loc])}`;
+      lokasiText = locations.map(loc => {
+        return `- ${loc} : ${formatIndoDurationSec(locMap[loc])}`;
       }).join('\n');
     }
 
-    let report = `📋 Daily Physical AI Intern Report \n\n👤 Nama : ${name}\n⚙️ Role : ${role}\n📅 Tanggal : ${summary.date_indo}\n\n📊 Summary Hari Ini\n* Jumlah kamera yang dibawa : ${camBawa}\n* Jumlah kamera aktif : ${camAktif}\n* Jumlah actual hours: \n${actualHoursText}\n\n📝 Catatan:\n${notes}`;
+    const catatanText = notes ? notes : '\n/';
+    const actualHoursTotal = formatIndoDurationSec(summary.total_seconds);
 
-    return report.trim();
+    let report = `Daily Physical AI Intern Report\n\nNama : ${name}\nRole : ${role}\nTanggal : ${summary.date_indo}\n\nSummary Hari Ini\n* Jumlah kamera yang dibawa : ${camBawa}\n* Jumlah kamera aktif : ${camAktif}\n* Jumlah actual hours: ${actualHoursTotal}\nLokasi: \n${lokasiText}\n  Catatan:\n${catatanText}`;
+
+    return report;
   }
 
   function updateSingleReportPreview() {
@@ -1787,14 +2273,16 @@
     if (!summary || !group) return;
 
     document.getElementById('dateTimelineText').textContent = `${summary.start_time} - ${summary.end_time} (${summary.file_count} file | Total: ${summary.total_indo})`;
+    const bannerTitle = document.getElementById('singleDateBannerTitle');
+    if (bannerTitle) bannerTitle.textContent = `Laporan Tanggal ${summary.date_indo}`;
 
     const headerTitleEl = document.getElementById('singleReportHeaderTitle');
     if (headerTitleEl) {
-      headerTitleEl.innerHTML = `✨ Daily Intern Report Siap Salin — <span style="color: #60a5fa;">Tanggal ${summary.date_indo}</span>:`;
+      headerTitleEl.innerHTML = `${ICONS.documentCheck} <span>Format Laporan Harian (Siap Kirim) — <span style="color: var(--accent-yellow);">Tanggal ${summary.date_indo}</span>:</span>`;
     }
     const btnCopyTextEl = document.getElementById('btnCopySingleReportText');
     if (btnCopyTextEl) {
-      btnCopyTextEl.textContent = `Salin Laporan (${summary.date_indo})`;
+      btnCopyTextEl.textContent = `Salin Format Laporan (${summary.date_indo})`;
     }
 
     const savedLoc = localStorage.getItem(`loc_main_${dateKey}`) || "Kedai QQ";
@@ -1805,8 +2293,8 @@
 
     isMultiLocOpen = false;
     document.getElementById('perFileLocBox').style.display = 'none';
-    document.getElementById('toggleMultiLocIcon').textContent = '➕';
-    document.getElementById('toggleMultiLocText').textContent = 'Pecah Lokasi Berdasarkan Jam File';
+    document.getElementById('toggleMultiLocIcon').innerHTML = ICONS.plus;
+    document.getElementById('toggleMultiLocText').textContent = 'Atur lokasi berbeda untuk jam tertentu';
 
     const locBox = document.getElementById('fileLocListContainer');
     locBox.innerHTML = '';
@@ -1845,9 +2333,11 @@
     group.items.forEach(item => {
       const row = document.createElement('div');
       row.className = 'file-row';
+      const camTag = item.camera_code ? `<span class="file-cam-tag">${ICONS.camera} atlascm${item.camera_code}</span>` : '';
       row.innerHTML = `
         <div class="file-info">
           <span class="file-idx">${item.index}.</span>
+          ${camTag}
           <span class="file-name" title="${item.file}">${item.file}</span>
         </div>
         <div class="file-times">
@@ -1868,13 +2358,13 @@
     summaryList.forEach(item => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><strong style="color: #93c5fd;">📅 ${item.date_indo}</strong></td>
+        <td><div style="display:flex;align-items:center;gap:6px;font-weight:700;color:var(--primary);">${ICONS.calendar} <span>${item.date_indo}</span></div></td>
         <td><span class="time-badge">${item.start_time} - ${item.end_time}</span></td>
         <td><strong>${item.file_count}</strong> file</td>
         <td><span class="dur-pill">${item.total_hms}</span></td>
         <td>
-          <button class="btn-copy-report" onclick="event.stopPropagation(); switchDateTab('${item.date}')" style="padding: 4px 10px; font-size: 11px;">
-            Buka Tab Laporan ➔
+          <button class="btn-sd-change" onclick="event.stopPropagation(); switchDateTab('${item.date}')" style="padding: 5px 12px; font-size: 11px;">
+            <span>Buka Laporan</span> ${ICONS.arrowRight}
           </button>
         </td>
       `;
@@ -1887,7 +2377,7 @@
     const text = generateReportText(activeTabDate);
     const summary = scanData && scanData.summary_per_date ? scanData.summary_per_date.find(s => s.date === activeTabDate) : null;
     const label = summary ? summary.date_indo : activeTabDate;
-    copyResultText(text, `📋 Format Daily Report (${label}) berhasil disalin!`);
+    copyResultText(text, `Format Daily Report (${label}) berhasil disalin!`);
   }
 
   function copyResultText(text, successMsg) {
@@ -1920,7 +2410,7 @@
       alertBox.innerHTML = `<div>${msg.replace(/\n/g, '<br>')}</div>
         <div style="margin-top: 12px;">
           <button type="button" class="btn-folder-pick" style="padding: 10px 18px; font-size: 13px; font-weight: bold; background: #059669; color: white;" onclick="executeBrowserScan()">
-            📁 Klik di Sini: Pilih Folder SD Card / Kamera Manual
+            Pilih Folder dari Laptop Anda
           </button>
         </div>`;
     } else {
@@ -1934,13 +2424,408 @@
     const isFile = window.location.protocol === 'file:';
     if (!isLocalhost && !isFile) {
       const badge = document.querySelector('.badge-status span:last-child');
-      if (badge) badge.textContent = "🌐 Web Cloud Production (Siap Digunakan di Laptop Manapun)";
+      if (badge) badge.textContent = "Web Cloud Production (Siap Digunakan di Laptop Manapun)";
     }
     checkAndRestoreSDCardStatus();
   }
 
   adjustUiForEnvironment();
   loadSavedProfile();
+
+  // ==============================================================
+  // FITUR RIWAYAT SIMPAN LOG & PENGGABUNGAN MULTI-KAMERA
+  // Memungkinkan penggabungan data tanggal 16 dari kamera 3047 & 3447
+  // ==============================================================
+  const STORAGE_KEY_LOGS = 'myrobin_camera_logs_v1';
+  let isMergedActive = false;
+
+  function extractCamCode(s1, s2) {
+    const combined = ((s1 || '') + ' ' + (s2 || '')).toLowerCase();
+    const m = combined.match(/atlascm(\d{4})/i) || combined.match(/(\d{4})/);
+    return m ? m[1] : '';
+  }
+
+  function getAllSavedLogs() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_LOGS);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) {
+      console.warn("Gagal membaca riwayat log:", e);
+      return [];
+    }
+  }
+
+  function generateScanFingerprint(camCode, groups) {
+    const fileSignatures = [];
+    (groups || []).forEach(g => {
+      (g.items || []).forEach(it => {
+        fileSignatures.push(`${it.file}_${it.start}_${it.duration_seconds}`);
+      });
+    });
+    fileSignatures.sort();
+    return `${camCode}__${fileSignatures.join('|')}`;
+  }
+
+  function saveScanLog(data, camCode, folderName) {
+    if (!data || !data.groups || data.groups.length === 0) return;
+    const logs = getAllSavedLogs();
+
+    const effectiveCam = camCode || extractCamCode(data.target_folder, '') || "3047";
+    const dateListStr = data.summary_per_date.map(s => s.date_indo).join(', ');
+    const fp = generateScanFingerprint(effectiveCam, data.groups);
+
+    // Cek apakah scan ini SAMA PERSIS (duplicate) dengan log yang sudah pernah disimpan
+    const isDuplicate = logs.some(l => {
+      if (l.fingerprint && l.fingerprint === fp) return true;
+      return (l.cameraCode === effectiveCam &&
+              l.grandTotalHMS === data.grand_total_hms &&
+              l.foundFiles === data.found_files &&
+              l.dateListText === dateListStr);
+    });
+
+    if (isDuplicate) {
+      console.log("Scan identik sudah ada di riwayat, tidak diduplikasi.");
+      renderSavedLogsUI();
+      return;
+    }
+
+    const newLog = {
+      id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      savedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      cameraCode: effectiveCam,
+      fingerprint: fp,
+      folderName: folderName || data.target_folder || `atlascm${effectiveCam}`,
+      foundFiles: data.found_files,
+      grandTotalHMS: data.grand_total_hms,
+      grandTotalHours: data.grand_total_hours,
+      dateListText: dateListStr,
+      summaryPerDate: data.summary_per_date,
+      groups: data.groups,
+      rawText: data.raw_text
+    };
+
+    // Selalu simpan setiap scan baru walau ganti kartu SD atau beda tanggal
+    logs.unshift(newLog);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+      showToast(`Hasil scan kamera atlascm${effectiveCam} (${newLog.foundFiles} file) disimpan ke riwayat!`);
+    } catch(e) {
+      console.warn("Penyimpanan lokal penuh:", e);
+    }
+
+    renderSavedLogsUI();
+  }
+
+  function renderSavedLogsUI() {
+    const logs = getAllSavedLogs();
+    const section = document.getElementById('logHistorySection');
+    const container = document.getElementById('logItemsListContainer');
+    const summaryText = document.getElementById('logHistorySummaryText');
+    const quickNotice = document.getElementById('savedLogsQuickNotice');
+    const quickNoticeText = document.getElementById('savedLogsNoticeText');
+
+    if (!section || !container) return;
+
+    if (logs.length === 0) {
+      section.style.display = 'none';
+      if (quickNotice) quickNotice.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    if (summaryText) {
+      summaryText.textContent = `${logs.length} Kamera Tersimpan`;
+    }
+
+    if (quickNotice && quickNoticeText) {
+      quickNotice.style.display = 'flex';
+      const camNames = logs.map(l => `atlascm${l.cameraCode}`).join(', ');
+      quickNoticeText.innerHTML = `<strong>Riwayat Aktif:</strong> ${logs.length} kamera tersimpan (${camNames}). Masukkan kode kamera lain lalu scan untuk menggabungkan hasilnya!`;
+    }
+
+    container.innerHTML = '';
+    logs.forEach((log) => {
+      const row = document.createElement('div');
+      row.className = 'log-item-row';
+      row.innerHTML = `
+        <div class="log-item-left">
+          <input type="checkbox" class="log-checkbox" id="chk_${log.id}" data-id="${log.id}" checked>
+          <span class="log-cam-pill">${ICONS.camera} atlascm${log.cameraCode}</span>
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${log.dateListText}</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 1px;">
+              ${log.foundFiles} file • Total Durasi: <strong>${log.grandTotalHMS}</strong> (${log.grandTotalHours} Jam) • <span style="color: var(--text-subtle);">Tersimpan ${log.savedAt}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-sd-change" onclick="viewSingleLog('${log.id}')" style="padding: 5px 12px; font-size: 11.5px;">
+            <span>Lihat Log Ini</span>
+          </button>
+          <button type="button" class="btn-icon-danger" onclick="deleteSingleLog('${log.id}')" title="Hapus log kamera ini">
+            ${ICONS.trash}
+          </button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function deleteSingleLog(id) {
+    const logs = getAllSavedLogs().filter(l => l.id !== id);
+    localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+    renderSavedLogsUI();
+    showToast("Log kamera berhasil dihapus dari riwayat.");
+  }
+
+  function clearAllScanLogs() {
+    if (!confirm("Apakah Anda yakin ingin menghapus semua riwayat log kamera tersimpan?")) return;
+    localStorage.removeItem(STORAGE_KEY_LOGS);
+    renderSavedLogsUI();
+    document.getElementById('mergedStatusBanner').style.display = 'none';
+    showToast("Semua riwayat log berhasil dibersihkan.");
+  }
+
+  function viewSingleLog(id) {
+    const log = getAllSavedLogs().find(l => l.id === id);
+    if (!log) return;
+
+    isMergedActive = false;
+    document.getElementById('mergedStatusBanner').style.display = 'none';
+
+    // Pulihkan format scanData dari log tunggal
+    scanData = {
+      success: true,
+      target_folder: `Kamera atlascm${log.cameraCode} (${log.folderName})`,
+      found_files: log.foundFiles,
+      dates_count: log.summaryPerDate.length,
+      range_label: log.summaryPerDate.length > 1 ? `${log.summaryPerDate[0].date.split('-')[2]}-${log.summaryPerDate[log.summaryPerDate.length - 1].date.split('-')[2]}` : log.summaryPerDate[0].date.split('-')[2],
+      grand_total_hms: log.grandTotalHMS,
+      grand_total_hours: log.grandTotalHours,
+      grand_total_indo: formatIndoDurationSec(log.summaryPerDate.reduce((a, b) => a + (b.total_seconds || 0), 0)),
+      summary_per_date: log.summaryPerDate,
+      groups: log.groups,
+      raw_text: log.rawText || ""
+    };
+
+    lastRawText = scanData.raw_text;
+
+    document.getElementById('statGrandTotal').textContent = scanData.grand_total_hms;
+    document.getElementById('statGrandHours').textContent = `${scanData.grand_total_hours} Jam`;
+    document.getElementById('statRange').textContent = `Total ${scanData.range_label}`;
+    document.getElementById('statFilesCount').textContent = `${scanData.found_files} File`;
+    document.getElementById('codeOutput').textContent = scanData.raw_text;
+
+    renderDateTabs(scanData.summary_per_date);
+    renderDailySummaryTable(scanData.summary_per_date);
+
+    if (scanData.summary_per_date.length > 0) {
+      switchDateTab(scanData.summary_per_date[scanData.summary_per_date.length - 1].date);
+    } else {
+      switchDateTab('ALL');
+    }
+
+    activateResultView();
+    showToast(`Menampilkan data kamera atlascm${log.cameraCode}`);
+  }
+
+  function mergeSelectedLogs() {
+    const checkboxes = Array.from(document.querySelectorAll('.log-checkbox:checked'));
+    if (checkboxes.length === 0) {
+      showAlert("Pilih / centang minimal 1 kamera dari riwayat log di atas.");
+      return;
+    }
+
+    const selectedIds = checkboxes.map(cb => cb.dataset.id);
+    const allLogs = getAllSavedLogs();
+    const selectedLogs = allLogs.filter(l => selectedIds.includes(l.id));
+
+    if (selectedLogs.length === 1) {
+      viewSingleLog(selectedLogs[0].id);
+      return;
+    }
+
+    // 1. Kumpulkan seluruh grup dan file berdasarkan tanggal
+    const byDate = {}; // dateStr -> { date, date_indo, items: [] }
+
+    selectedLogs.forEach(log => {
+      const cam = log.cameraCode;
+      (log.groups || []).forEach(g => {
+        const d = g.date;
+        if (!byDate[d]) {
+          byDate[d] = {
+            date: d,
+            date_indo: g.date_indo,
+            items: []
+          };
+        }
+        (g.items || []).forEach(it => {
+          byDate[d].items.push({
+            ...it,
+            camera_code: it.camera_code || cam
+          });
+        });
+      });
+    });
+
+    const datesList = Object.keys(byDate).sort();
+    if (datesList.length === 0) {
+      showAlert("Tidak ada data file pada kamera yang dipilih.");
+      return;
+    }
+
+    let grandTotalSeconds = 0;
+    let grandFoundFiles = 0;
+    const mergedSummaryPerDate = [];
+    const mergedGroups = [];
+    const camNamesList = selectedLogs.map(l => `atlascm${l.cameraCode}`);
+
+    let rawLines = [
+      "========================================",
+      `  LOKASI FOLDER : Gabungan Kamera (${camNamesList.join(', ')})`,
+      "========================================\n",
+      "=== RINGKASAN GABUNGAN PER TANGGAL ==="
+    ];
+
+    datesList.forEach(d => {
+      const dObj = byDate[d];
+      // Hapus kemungkinan duplikat file persis (file + start)
+      const seen = new Set();
+      const uniqueItems = [];
+      dObj.items.forEach(it => {
+        const key = `${it.file}_${it.start}_${it.camera_code}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueItems.push(it);
+        }
+      });
+
+      // Urutkan file secara kronologis berdasarkan waktu mulai
+      uniqueItems.sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+      uniqueItems.forEach((it, idx) => {
+        it.index = idx + 1;
+      });
+
+      const dateTotalSec = uniqueItems.reduce((acc, cur) => acc + (cur.duration_seconds || 0), 0);
+      grandTotalSeconds += dateTotalSec;
+      grandFoundFiles += uniqueItems.length;
+
+      const firstStart = uniqueItems.length > 0 ? uniqueItems[0].start : "00:00:00";
+      const lastEnd = uniqueItems.length > 0 ? uniqueItems[uniqueItems.length - 1].end : "00:00:00";
+      const dateTotalHMS = formatHMSFromSec(dateTotalSec);
+      const dateTotalIndo = formatIndoDurationSec(dateTotalSec);
+      const hoursDec = Math.round((dateTotalSec / 3600) * 100) / 100;
+      const camsOnDate = [...new Set(uniqueItems.map(it => it.camera_code))];
+
+      rawLines.push(`• Tanggal ${d} (${dObj.date_indo}) > ${dateTotalHMS} (${dateTotalIndo}) [Kamera: ${camsOnDate.map(c => 'atlascm' + c).join(', ')}]`);
+
+      mergedSummaryPerDate.push({
+        date: d,
+        date_indo: dObj.date_indo,
+        total_hms: dateTotalHMS,
+        total_indo: dateTotalIndo,
+        total_hours: hoursDec,
+        total_seconds: dateTotalSec,
+        file_count: uniqueItems.length,
+        start_time: firstStart,
+        end_time: lastEnd,
+        camera_list: camsOnDate
+      });
+
+      mergedGroups.push({
+        date: d,
+        date_indo: dObj.date_indo,
+        total_hms: dateTotalHMS,
+        total_indo: dateTotalIndo,
+        total_hours: hoursDec,
+        total_seconds: dateTotalSec,
+        file_count: uniqueItems.length,
+        start_time: firstStart,
+        end_time: lastEnd,
+        items: uniqueItems
+      });
+    });
+
+    const minDate = datesList[0].split('-')[2];
+    const maxDate = datesList[datesList.length - 1].split('-')[2];
+    const rangeLabel = minDate === maxDate ? minDate : `${minDate}-${maxDate}`;
+    const grandTotalHMS = formatHMSFromSec(grandTotalSeconds);
+    const grandTotalHours = Math.round((grandTotalSeconds / 3600) * 100) / 100;
+    const grandTotalIndo = formatIndoDurationSec(grandTotalSeconds);
+
+    rawLines.push("----------------------------------------");
+    rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS} (${grandTotalHours} jam | ${grandTotalIndo})\n`);
+    rawLines.push("=== DETAIL GABUNGAN PER TANGGAL & FILE ===");
+
+    mergedGroups.forEach(g => {
+      rawLines.push(`\ntanggal ${g.date} (${g.date_indo}) > ${g.total_hms}`);
+      g.items.forEach(it => {
+        rawLines.push(`   ${it.index}. [atlascm${it.camera_code}] ${it.duration} (${it.start} - ${it.end}) [File: ${it.file}]`);
+      });
+    });
+
+    rawLines.push("\n" + "=".repeat(40));
+    rawLines.push(`Total ${rangeLabel} > ${grandTotalHMS}`);
+    const rawText = rawLines.join('\n');
+
+    scanData = {
+      success: true,
+      target_folder: `Gabungan Kamera (${camNamesList.join(' + ')})`,
+      found_files: grandFoundFiles,
+      dates_count: datesList.length,
+      range_label: rangeLabel,
+      grand_total_hms: grandTotalHMS,
+      grand_total_hours: grandTotalHours,
+      grand_total_indo: grandTotalIndo,
+      summary_per_date: mergedSummaryPerDate,
+      groups: mergedGroups,
+      raw_text: rawText,
+      isMerged: true,
+      mergedCameras: camNamesList
+    };
+
+    lastRawText = rawText;
+
+    // Tampilkan Banner Gabungan
+    const banner = document.getElementById('mergedStatusBanner');
+    const bannerText = document.getElementById('mergedStatusBannerText');
+    if (banner && bannerText) {
+      bannerText.innerHTML = `<span>Menampilkan Rekap Gabungan: <strong>${camNamesList.join(' & ')}</strong> (${grandFoundFiles} Total File)</span>`;
+      banner.style.display = 'flex';
+    }
+
+    // Update UI Stats
+    document.getElementById('statGrandTotal').textContent = grandTotalHMS;
+    document.getElementById('statGrandHours').textContent = `${grandTotalHours} Jam`;
+    document.getElementById('statRange').textContent = `Total ${rangeLabel}`;
+    document.getElementById('statFilesCount').textContent = `${grandFoundFiles} File`;
+    document.getElementById('codeOutput').textContent = rawText;
+
+    renderDateTabs(mergedSummaryPerDate);
+    renderDailySummaryTable(mergedSummaryPerDate);
+
+    if (mergedSummaryPerDate.length > 0) {
+      switchDateTab(mergedSummaryPerDate[mergedSummaryPerDate.length - 1].date);
+    } else {
+      switchDateTab('ALL');
+    }
+
+    activateResultView();
+    showToast(`Berhasil menggabungkan ${selectedLogs.length} kamera!`);
+  }
+
+  function scrollToLogSection() {
+    const sec = document.getElementById('logHistorySection');
+    if (sec) {
+      sec.style.display = 'block';
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // Panggil render log saat pertama kali muat
+  renderSavedLogsUI();
+
 </script>
 
 </body>
