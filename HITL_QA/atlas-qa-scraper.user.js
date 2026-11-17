@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Atlas Capture QA Auto-Reporter to Google Sheets
 // @namespace    https://studio.atlascapture.io/
-// @version      5.0.0
-// @description  Targeted Precision Date Range Scraper: Support Multi-UMKM Otomatis dari <h1>, Live Progress Ditelusuri & Cocok, Verification Flow, dan Notifikasi Top Banner
+// @version      5.1.0
+// @description  Episode Scrapper v5.1: Targeted Precision Date Range Scraper dengan Multi-UMKM Otomatis, Live Progress Ditelusuri & Cocok, Verification Flow, Lebar Window Fleksibel, dan Zero Emotikon
 // @author       Antigravity
 // @match        https://studio.atlascapture.io/*
 // @grant        unsafeWindow
@@ -26,7 +26,8 @@
     SHEET_NAME: 'atlas_qa_sheet_name',
     DATE_START: 'atlas_qa_date_start',
     DATE_END: 'atlas_qa_date_end',
-    CUSTOM_BIZ_NAME: 'atlas_qa_custom_biz_name'
+    CUSTOM_BIZ_NAME: 'atlas_qa_custom_biz_name',
+    WIDGET_WIDTH: 'atlas_qa_widget_width'
   };
 
   const win = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
@@ -39,15 +40,16 @@
     businessName: '',       // Diambil langsung dari <h1>
     bucket: 'P0',
     isScrapingRunning: false,
-    stopRequested: false
+    stopRequested: false,
+    isOnBusinessPage: false
   };
 
   // ==========================================
   // IKON HEROICONS SVG (BEBAS EMOTE / EMOJI)
   // ==========================================
   const ICONS = {
-    sync: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>',
-    cog: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+    sync: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>',
+    cog: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
     building: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="22.01"/><line x1="15" y1="22" x2="15" y2="22.01"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="9" y2="18.01"/><line x1="15" y1="18" x2="15" y2="18.01"/></svg>',
     search: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
     calendar: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
@@ -57,7 +59,11 @@
     check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
     alert: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
     refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
-    close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+    close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    help: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    chevronDown: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+    chevronUp: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>',
+    arrowRight: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
   };
 
   // ==========================================
@@ -101,19 +107,24 @@
       }
     }
 
-    return state.businessName || 'Kedai QQ';
+    return state.businessName || '';
   }
 
   function parseDashboardUrl() {
     try {
       const parts = window.location.pathname.split('/').filter(Boolean);
       const bizIdx = parts.indexOf('business');
-      if (bizIdx !== -1) {
-        if (parts[bizIdx + 1]) state.userGroupId = parts[bizIdx + 1];
-        if (parts[bizIdx + 2]) state.businessId = parts[bizIdx + 2];
+      if (bizIdx !== -1 && parts[bizIdx + 2]) {
+        state.userGroupId = parts[bizIdx + 1];
+        state.businessId = parts[bizIdx + 2];
+        state.isOnBusinessPage = true;
+      } else {
+        state.isOnBusinessPage = false;
       }
       state.businessName = detectBusinessName();
-    } catch (e) { }
+    } catch (e) {
+      state.isOnBusinessPage = false;
+    }
   }
 
   function snakeToTitle(str) {
@@ -425,22 +436,51 @@
   }
 
   // ==========================================
-  // FLOATING UI & LIVE PROGRESS & TOP BANNER
-  // DESIGN SYSTEM SESUAI MYROBIN APPS
+  // LIVE PROGRESS & STATUS UPDATE
   // ==========================================
 
   function updateProgressUI() {
-    const badge = document.getElementById('aqa-badge-count');
+    // 1. Update status badge di header
+    const badge = document.getElementById('aqa-badge-status');
     if (badge) {
-      badge.textContent = `${state.episodes.size} Cocok`;
+      if (state.isScrapingRunning) {
+        badge.textContent = 'Memindai...';
+      } else if (state.episodes.size > 0) {
+        badge.textContent = `${state.episodes.size} Cocok`;
+      } else if (state.isOnBusinessPage) {
+        badge.textContent = 'Pilih Tanggal & Pindai';
+      } else {
+        badge.textContent = 'Buka Halaman Bisnis';
+      }
     }
-    const bizLabel = document.getElementById('aqa-biz-label');
-    if (bizLabel) {
-      bizLabel.innerHTML = `
-        <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.building}</span>
-        <span>UMKM: ${state.businessName || detectBusinessName() || 'Kedai QQ'}</span>
-      `;
+
+    // 2. Update kartu UMKM
+    const bizActiveView = document.getElementById('aqa-biz-active-view');
+    const bizGuidanceView = document.getElementById('aqa-biz-guidance-view');
+    const bizNameEl = document.getElementById('aqa-biz-name');
+    const bizHintEl = document.getElementById('aqa-biz-state-hint');
+
+    const detectedBiz = state.businessName || detectBusinessName();
+
+    if (state.isOnBusinessPage && detectedBiz) {
+      if (bizActiveView) bizActiveView.style.display = 'flex';
+      if (bizGuidanceView) bizGuidanceView.style.display = 'none';
+      if (bizNameEl) bizNameEl.textContent = detectedBiz;
+      if (bizHintEl) {
+        if (state.isScrapingRunning) {
+          bizHintEl.textContent = 'Sedang memindai episode penolakan dari database...';
+        } else if (state.episodes.size > 0) {
+          bizHintEl.textContent = `${state.episodes.size} episode cocok siap disalin atau dikirim ke Sheet.`;
+        } else {
+          bizHintEl.textContent = 'Pilih rentang tanggal di bawah lalu klik Mulai Pindai.';
+        }
+      }
+    } else {
+      if (bizActiveView) bizActiveView.style.display = 'none';
+      if (bizGuidanceView) bizGuidanceView.style.display = 'flex';
     }
+
+    // 3. Update 2 baris keterangan metrik
     const statScanned = document.getElementById('aqa-stat-scanned');
     if (statScanned) {
       statScanned.textContent = `${state.allEpisodes.size}`;
@@ -610,8 +650,69 @@
     };
   }
 
+  // ==========================================
+  // MODAL PANDUAN / TUTORIAL CEPAT
+  // ==========================================
+  function showHelpModal() {
+    let overlay = document.getElementById('aqa-help-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'aqa-help-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    overlay.innerHTML = `
+      <div class="aqa-dialog-box">
+        <div class="aqa-dialog-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.help}</span>
+            <span>Panduan Episode Scrapper v5.1</span>
+          </div>
+          <button id="aqa-help-close-x" class="aqa-btn-icon" title="Tutup">${ICONS.close}</button>
+        </div>
+
+        <div class="aqa-dialog-body" style="display:flex; flex-direction:column; gap:12px; font-size:12px; color:#334155; line-height:1.5;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div style="background:#FAF8EE; border:1px solid #E5DEC9; color:#1B4D4B; font-weight:700; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">1</div>
+            <div><b>Buka Halaman Bisnis UMKM</b><br>Pastikan Anda membuka URL bisnis di Atlas Studio (contoh: <code>/dashboard/business/...</code>). Widget akan otomatis mendeteksi nama UMKM.</div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div style="background:#FAF8EE; border:1px solid #E5DEC9; color:#1B4D4B; font-weight:700; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">2</div>
+            <div><b>Pilih Rentang Tanggal</b><br>Tentukan tanggal awal dan akhir episode rekaman yang ingin discrap.</div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div style="background:#FAF8EE; border:1px solid #E5DEC9; color:#1B4D4B; font-weight:700; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">3</div>
+            <div><b>Klik "Mulai Pindai Sesuai Tanggal"</b><br>Sistem menyisir database background secara cerdas di seluruh kategori penolakan.</div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div style="background:#FAF8EE; border:1px solid #E5DEC9; color:#1B4D4B; font-weight:700; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">4</div>
+            <div><b>Salin atau Kirim ke Sheet</b><br>Gunakan tombol <b>Kirim ke Sheet</b> untuk mengirim instan, atau <b>Salin (TSV)</b> untuk langsung tempel (Ctrl+V) ke spreadsheet.</div>
+          </div>
+        </div>
+
+        <div class="aqa-dialog-footer">
+          <button id="aqa-help-close-btn" class="aqa-btn aqa-btn-emerald" style="width:100%;">
+            Tutup Panduan
+          </button>
+        </div>
+      </div>
+    `;
+
+    overlay.style.display = 'flex';
+
+    const closeHelp = () => { overlay.style.display = 'none'; };
+    document.getElementById('aqa-help-close-x').onclick = closeHelp;
+    document.getElementById('aqa-help-close-btn').onclick = closeHelp;
+  }
+
+  // ==========================================
+  // FLOATING UI UTAMA (TOP-TO-BOTTOM FLOW)
+  // ==========================================
+
   function createFloatingUI() {
     if (document.getElementById('atlas-qa-widget-root')) return;
+
+    const savedWidth = parseInt(GM_getValue(STORAGE_KEYS.WIDGET_WIDTH, '340'), 10) || 340;
 
     const style = document.createElement('style');
     style.innerHTML = `
@@ -629,11 +730,12 @@
         border: 1.5px solid #E5DEC9;
         border-radius: 14px;
         box-shadow: 0 12px 32px rgba(27, 77, 75, 0.16), 0 2px 6px rgba(0, 0, 0, 0.05);
-        width: 340px;
+        width: ${savedWidth}px;
         overflow: hidden;
+        transition: width 0.15s ease;
       }
       .aqa-header {
-        padding: 12px 16px;
+        padding: 10px 14px;
         background: #FAF8EE;
         display: flex;
         align-items: center;
@@ -642,11 +744,16 @@
       }
       .aqa-title {
         font-weight: 700;
-        font-size: 13.5px;
+        font-size: 12.5px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
         color: #1B4D4B;
+      }
+      .aqa-header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
       .aqa-badge {
         font-size: 11px;
@@ -656,6 +763,7 @@
         padding: 2px 8px;
         border-radius: 9999px;
         font-weight: 600;
+        white-space: nowrap;
       }
       .aqa-btn-icon {
         background: none;
@@ -667,61 +775,81 @@
         justify-content: center;
         padding: 4px;
         border-radius: 6px;
-        transition: color 0.15s ease, background-color 0.15s ease;
+        transition: all 0.15s ease;
       }
       .aqa-btn-icon:hover {
         color: #1B4D4B;
         background-color: #EFE9D9;
       }
       .aqa-body {
-        padding: 14px 16px;
+        padding: 12px 14px;
         display: flex;
         flex-direction: column;
         gap: 10px;
         background: #FFFFFF;
       }
-      .aqa-biz-tag {
-        font-size: 12px;
-        color: #1B4D4B;
-        font-weight: 700;
-        background: #FAF8EE;
-        padding: 7px 10px;
+
+      /* KARTU STATUS UMKM / PANDUAN NAVIGASI */
+      .aqa-biz-card {
+        padding: 8px 10px;
         border-radius: 8px;
         border: 1px solid #E5DEC9;
         display: flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .aqa-stats-row {
-        display: flex;
+        align-items: flex-start;
         gap: 8px;
       }
-      .aqa-stat-box {
-        flex: 1;
-        background: #FAF8F2;
-        border: 1px solid #E5DEC9;
-        border-radius: 8px;
-        padding: 8px;
-        text-align: center;
+      .aqa-biz-card--guidance {
+        background: #FFFDF5;
+        border-color: #F8DE85;
       }
-      .aqa-stat-val {
-        font-size: 17px;
-        font-weight: 800;
+      .aqa-biz-card--guidance .aqa-biz-icon {
+        color: #B45309;
+        margin-top: 1px;
       }
-      .aqa-stat-lbl {
+      .aqa-biz-card--guidance .aqa-biz-title {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #92400E;
+      }
+      .aqa-biz-card--guidance .aqa-biz-subtitle {
         font-size: 10.5px;
-        color: #64748B;
+        color: #78350F;
         margin-top: 2px;
-        font-weight: 500;
       }
+
+      .aqa-biz-card--active {
+        background: #FAF8EE;
+        border-color: #E5DEC9;
+      }
+      .aqa-biz-card--active .aqa-biz-icon {
+        color: #1B4D4B;
+        margin-top: 2px;
+      }
+      .aqa-biz-card--active .aqa-biz-label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .aqa-biz-card--active .aqa-biz-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1B4D4B;
+        line-height: 1.2;
+      }
+      .aqa-biz-card--active .aqa-biz-subtitle {
+        font-size: 10.5px;
+        color: #475569;
+        margin-top: 2px;
+      }
+
+      /* DATE RANGE SELECTOR */
       .aqa-date-box {
         display: flex;
         gap: 8px;
         background: #FAF8F2;
-        padding: 10px;
+        padding: 8px 10px;
         border-radius: 8px;
         border: 1px solid #E5DEC9;
       }
@@ -729,7 +857,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
       }
       .aqa-date-field label {
         font-size: 10.5px;
@@ -740,7 +868,7 @@
         background: #FFFFFF;
         border: 1px solid #D6CDC0;
         color: #111827;
-        padding: 6px 8px;
+        padding: 5px 7px;
         border-radius: 6px;
         font-size: 11.5px;
         outline: none;
@@ -751,12 +879,48 @@
       .aqa-date-field input:focus {
         border-color: #1B4D4B;
       }
+
+      /* METRIK 2 KETERANGAN BERURUTAN */
+      .aqa-metrics-container {
+        background: #FAF8F2;
+        border: 1px solid #E5DEC9;
+        border-radius: 8px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .aqa-metric-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        color: #334155;
+      }
+      .aqa-metric-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .aqa-metric-dot.dot-scanned {
+        background: #1B4D4B;
+      }
+      .aqa-metric-dot.dot-matched {
+        background: #3AA39E;
+      }
+      .aqa-metric-row strong {
+        font-weight: 700;
+        color: #111827;
+      }
+
+      /* TOMBOL AKSI */
       .aqa-btn {
         width: 100%;
-        padding: 9px 12px;
+        padding: 8px 12px;
         border-radius: 8px;
         font-weight: 600;
-        font-size: 12.5px;
+        font-size: 12px;
         cursor: pointer;
         border: none;
         display: flex;
@@ -775,14 +939,6 @@
         box-shadow: 0 2px 6px rgba(27, 77, 75, 0.2);
       }
       .aqa-btn-emerald:hover {
-        background: #133A38;
-      }
-      .aqa-btn-primary {
-        background: #1B4D4B;
-        color: #FFFFFF;
-        box-shadow: 0 2px 6px rgba(27, 77, 75, 0.2);
-      }
-      .aqa-btn-primary:hover {
         background: #133A38;
       }
       .aqa-btn-danger {
@@ -808,9 +964,9 @@
         gap: 8px;
       }
       .aqa-status-box {
-        font-size: 11.5px;
+        font-size: 11px;
         color: #475569;
-        padding: 8px 10px;
+        padding: 7px 9px;
         background: #FBF8EE;
         border-radius: 6px;
         border: 1px solid #E5DEC9;
@@ -818,6 +974,62 @@
         word-break: break-word;
         line-height: 1.4;
       }
+
+      /* FOOTER TOGGLE PENGATURAN DI PALING BAWAH */
+      .aqa-footer-settings {
+        border-top: 1px solid #E5DEC9;
+        background: #FAF8EE;
+      }
+      .aqa-settings-toggle-btn {
+        width: 100%;
+        padding: 8px 12px;
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+      .aqa-settings-toggle-btn:hover {
+        background-color: #F1ECE0;
+        color: #1B4D4B;
+      }
+      .aqa-settings-modal {
+        display: none;
+        padding: 12px 14px;
+        border-top: 1px solid #E5DEC9;
+        background: #FAF8F2;
+      }
+      .aqa-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+      .aqa-input-group label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #475569;
+      }
+      .aqa-input-group input[type="text"] {
+        background: #FFFFFF;
+        border: 1px solid #D6CDC0;
+        color: #111827;
+        padding: 6px 8px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        outline: none;
+        transition: border-color 0.15s ease;
+      }
+      .aqa-input-group input[type="text"]:focus {
+        border-color: #1B4D4B;
+      }
+
+      /* TOAST & BANNER & DIALOG */
       .aqa-toast {
         position: fixed;
         bottom: 90px;
@@ -835,38 +1047,6 @@
         max-width: 330px;
         line-height: 1.4;
       }
-      .aqa-settings-modal {
-        display: none;
-        padding: 14px 16px;
-        border-top: 1px solid #E5DEC9;
-        background: #FAF8F2;
-      }
-      .aqa-input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        margin-bottom: 10px;
-      }
-      .aqa-input-group label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #475569;
-      }
-      .aqa-input-group input {
-        background: #FFFFFF;
-        border: 1px solid #D6CDC0;
-        color: #111827;
-        padding: 7px 9px;
-        border-radius: 6px;
-        font-size: 11.5px;
-        outline: none;
-        transition: border-color 0.15s ease;
-      }
-      .aqa-input-group input:focus {
-        border-color: #1B4D4B;
-      }
-
-      /* TOP NOTIFICATION BANNER */
       #aqa-top-banner {
         position: fixed;
         top: 20px;
@@ -899,9 +1079,7 @@
         from { top: -60px; opacity: 0; }
         to { top: 20px; opacity: 1; }
       }
-
-      /* MODAL VERIFIKASI SEBELUM KIRIM */
-      #aqa-modal-overlay {
+      #aqa-modal-overlay, #aqa-help-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -925,9 +1103,9 @@
       }
       .aqa-dialog-header {
         background: #FAF8EE;
-        padding: 14px 18px;
+        padding: 12px 16px;
         font-weight: 700;
-        font-size: 13.5px;
+        font-size: 13px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -935,11 +1113,11 @@
         color: #1B4D4B;
       }
       .aqa-dialog-body {
-        padding: 16px 18px;
+        padding: 14px 16px;
         color: #111827;
       }
       .aqa-dialog-footer {
-        padding: 12px 18px;
+        padding: 12px 16px;
         background: #FAF8F2;
         border-top: 1px solid #E5DEC9;
         display: flex;
@@ -956,38 +1134,41 @@
     root.id = 'atlas-qa-widget-root';
 
     root.innerHTML = `
-      <div class="aqa-card">
+      <div class="aqa-card" id="aqa-card">
+        <!-- 1. HEADER (Paling Atas) -->
         <div class="aqa-header">
           <div class="aqa-title">
             <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.sync}</span>
-            <span>Atlas QA Flow v5.0</span>
-            <span class="aqa-badge" id="aqa-badge-count">0 Cocok</span>
+            <span>Episode Scrapper v5.1</span>
           </div>
-          <button id="aqa-btn-toggle-settings" class="aqa-btn-icon" title="Pengaturan Webhook">
-            ${ICONS.cog}
-          </button>
+          <div class="aqa-header-right">
+            <span class="aqa-badge" id="aqa-badge-status">Siap Digunakan</span>
+            <button id="aqa-btn-help" class="aqa-btn-icon" title="Panduan Penggunaan">
+              ${ICONS.help}
+            </button>
+          </div>
         </div>
 
         <div class="aqa-body">
-          <!-- INDIKATOR UMKM AKTIF DARI <h1> -->
-          <div class="aqa-biz-tag" id="aqa-biz-label">
-            <span style="display:inline-flex; align-items:center; color:#1B4D4B;">${ICONS.building}</span>
-            <span>UMKM: ${currentBiz}</span>
-          </div>
-
-          <!-- METRIK DITELUSURI & COCOK -->
-          <div class="aqa-stats-row">
-            <div class="aqa-stat-box">
-              <div class="aqa-stat-val" id="aqa-stat-scanned" style="color:#1B4D4B;">0</div>
-              <div class="aqa-stat-lbl">Ditelusuri (DB)</div>
-            </div>
-            <div class="aqa-stat-box">
-              <div class="aqa-stat-val" id="aqa-stat-matched" style="color:#3AA39E;">0</div>
-              <div class="aqa-stat-lbl">Cocok Tanggal</div>
+          <!-- 2. KARTU UMKM / PETUNJUK NAVIGASI STATE -->
+          <div class="aqa-biz-card aqa-biz-card--guidance" id="aqa-biz-guidance-view" style="display:${state.isOnBusinessPage ? 'none' : 'flex'};">
+            <div class="aqa-biz-icon">${ICONS.building}</div>
+            <div class="aqa-biz-info">
+              <div class="aqa-biz-title">Silakan Buka Halaman Bisnis / UMKM</div>
+              <div class="aqa-biz-subtitle">Buka dashboard bisnis di Atlas Studio untuk mulai scrapping.</div>
             </div>
           </div>
 
-          <!-- DATE RANGE SELECTOR -->
+          <div class="aqa-biz-card aqa-biz-card--active" id="aqa-biz-active-view" style="display:${state.isOnBusinessPage ? 'flex' : 'none'};">
+            <div class="aqa-biz-icon">${ICONS.building}</div>
+            <div class="aqa-biz-info" style="flex:1; overflow:hidden;">
+              <div class="aqa-biz-label">UMKM Aktif:</div>
+              <div class="aqa-biz-title" id="aqa-biz-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${currentBiz}</div>
+              <div class="aqa-biz-subtitle" id="aqa-biz-state-hint">Pilih rentang tanggal di bawah lalu klik Mulai Pindai.</div>
+            </div>
+          </div>
+
+          <!-- 3. DATE RANGE SELECTOR & MULAI PINDAI -->
           <div class="aqa-date-box">
             <div class="aqa-date-field">
               <label>Dari Tanggal:</label>
@@ -999,49 +1180,85 @@
             </div>
           </div>
 
-          <!-- ACTION BUTTONS -->
-          <button id="aqa-btn-start-scrape" class="aqa-btn aqa-btn-emerald">
-            ${ICONS.search}
-            <span>Mulai Pindai Sesuai Tanggal</span>
-          </button>
-
-          <div class="aqa-actions-row">
-            <button id="aqa-btn-copy-tsv" class="aqa-btn aqa-btn-secondary" style="flex:1;" title="Salin data yang cocok ke papan klip">
-              ${ICONS.clipboard}
-              <span>Salin (TSV)</span>
+          <div style="display:flex; gap:8px;">
+            <button id="aqa-btn-start-scrape" class="aqa-btn aqa-btn-emerald" style="flex:1;">
+              ${ICONS.search}
+              <span>Mulai Pindai Sesuai Tanggal</span>
             </button>
-            <button id="aqa-btn-send-sheet" class="aqa-btn aqa-btn-secondary" style="flex:1;" title="Kirim data ke Google Sheet">
-              ${ICONS.send}
-              <span>Kirim ke Sheet</span>
-            </button>
-            <button id="aqa-btn-stop" class="aqa-btn aqa-btn-danger" style="display:none; width:80px;">
+            <button id="aqa-btn-stop" class="aqa-btn aqa-btn-danger" style="display:none; width:75px;">
               ${ICONS.stop}
               <span>Stop</span>
             </button>
           </div>
 
+          <!-- 4. DUA KETERANGAN METRIK HASIL -->
+          <div class="aqa-metrics-container">
+            <div class="aqa-metric-row">
+              <div class="aqa-metric-dot dot-scanned"></div>
+              <div class="aqa-metric-text">
+                <strong id="aqa-stat-scanned">0</strong> episode telah ditelusuri di database
+              </div>
+            </div>
+            <div class="aqa-metric-row">
+              <div class="aqa-metric-dot dot-matched"></div>
+              <div class="aqa-metric-text">
+                <strong id="aqa-stat-matched">0</strong> episode pada tanggal yang dipilih
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. AKSI SALIN ATAU KIRIM KE SHEET -->
+          <div class="aqa-actions-row">
+            <button id="aqa-btn-copy-tsv" class="aqa-btn aqa-btn-secondary" style="flex:1;" title="Salin data yang cocok ke papan klip">
+              ${ICONS.clipboard}
+              <span>Salin (TSV)</span>
+            </button>
+            <button id="aqa-btn-send-sheet" class="aqa-btn aqa-btn-emerald" style="flex:1;" title="Kirim data ke Google Sheet">
+              ${ICONS.send}
+              <span>Kirim ke Sheet</span>
+            </button>
+          </div>
+
+          <!-- STATUS LOG / KETERANGAN PROSES -->
           <div class="aqa-status-box" id="aqa-status-text">
-            Siap menyisir. Tentukan tanggal lalu klik Mulai.
+            Siap menyisir. Tentukan tanggal lalu klik Mulai Pindai.
           </div>
         </div>
 
-        <!-- SETTINGS PANEL -->
-        <div class="aqa-settings-modal" id="aqa-settings-modal">
-          <div class="aqa-input-group">
-            <label>Google Apps Script Webhook URL:</label>
-            <input type="text" id="aqa-input-webhook" placeholder="https://script.google.com/macros/s/.../exec" />
-          </div>
-          <div class="aqa-input-group">
-            <label>Nama Sheet / Tab (Opsional):</label>
-            <input type="text" id="aqa-input-sheet" placeholder="Sheet1 (atau kosongkan)" />
-          </div>
-          <div class="aqa-input-group">
-            <label>Nama UMKM Kustom (Opsional, otomatis dari h1):</label>
-            <input type="text" id="aqa-input-custom-biz" placeholder="Kosongkan untuk auto h1" />
-          </div>
-          <button id="aqa-btn-save-settings" class="aqa-btn aqa-btn-emerald" style="margin-top:6px;">
-            Simpan Pengaturan
+        <!-- 6. PENGATURAN DI BAWAH (LINK SHEET & LEBAR WINDOW) -->
+        <div class="aqa-footer-settings">
+          <button id="aqa-btn-toggle-settings" class="aqa-settings-toggle-btn">
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${ICONS.cog}
+              <span>Pengaturan Webhook & Lebar Window</span>
+            </div>
+            <span id="aqa-settings-caret">${ICONS.chevronDown}</span>
           </button>
+
+          <div class="aqa-settings-modal" id="aqa-settings-modal">
+            <div class="aqa-input-group">
+              <label>Google Apps Script Webhook URL:</label>
+              <input type="text" id="aqa-input-webhook" placeholder="https://script.google.com/macros/s/.../exec" />
+            </div>
+            <div class="aqa-input-group">
+              <label>Nama Sheet / Tab (Opsional):</label>
+              <input type="text" id="aqa-input-sheet" placeholder="Sheet1 (atau kosongkan)" />
+            </div>
+            <div class="aqa-input-group">
+              <label>Nama UMKM Kustom (Opsional, otomatis dari h1):</label>
+              <input type="text" id="aqa-input-custom-biz" placeholder="Kosongkan untuk auto h1" />
+            </div>
+            <div class="aqa-input-group">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label>Lebar Window Widget:</label>
+                <span id="aqa-val-width" style="font-size:11px; font-weight:700; color:#1B4D4B;">${savedWidth}px</span>
+              </div>
+              <input type="range" id="aqa-input-width" min="300" max="480" step="10" value="${savedWidth}" style="cursor:pointer;" />
+            </div>
+            <button id="aqa-btn-save-settings" class="aqa-btn aqa-btn-emerald" style="margin-top:6px;">
+              Simpan Pengaturan
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1050,6 +1267,7 @@
 
     document.body.appendChild(root);
     setupUIEvents();
+    updateProgressUI();
   }
 
   function setupUIEvents() {
@@ -1057,8 +1275,10 @@
     const btnStop = document.getElementById('aqa-btn-stop');
     const btnCopyTSV = document.getElementById('aqa-btn-copy-tsv');
     const btnSendSheet = document.getElementById('aqa-btn-send-sheet');
+    const btnHelp = document.getElementById('aqa-btn-help');
     const btnToggleSettings = document.getElementById('aqa-btn-toggle-settings');
     const settingsModal = document.getElementById('aqa-settings-modal');
+    const settingsCaret = document.getElementById('aqa-settings-caret');
     const btnSaveSettings = document.getElementById('aqa-btn-save-settings');
 
     const inputStart = document.getElementById('aqa-input-date-start');
@@ -1066,21 +1286,42 @@
     const inputWebhook = document.getElementById('aqa-input-webhook');
     const inputSheet = document.getElementById('aqa-input-sheet');
     const inputCustomBiz = document.getElementById('aqa-input-custom-biz');
+    const inputWidth = document.getElementById('aqa-input-width');
+    const valWidth = document.getElementById('aqa-val-width');
+    const cardEl = document.getElementById('aqa-card');
 
+    // Load saved settings
     inputWebhook.value = GM_getValue(STORAGE_KEYS.WEBHOOK_URL, '');
     inputSheet.value = GM_getValue(STORAGE_KEYS.SHEET_NAME, '');
     inputCustomBiz.value = GM_getValue(STORAGE_KEYS.CUSTOM_BIZ_NAME, '');
 
+    // Help Tutorial Modal
+    btnHelp.addEventListener('click', showHelpModal);
+
+    // Toggle Settings Panel di Bawah
     btnToggleSettings.addEventListener('click', () => {
       const isVisible = settingsModal.style.display === 'block';
       settingsModal.style.display = isVisible ? 'none' : 'block';
+      if (settingsCaret) {
+        settingsCaret.innerHTML = isVisible ? ICONS.chevronDown : ICONS.chevronUp;
+      }
     });
 
+    // Realtime Widget Width Slider
+    inputWidth.addEventListener('input', (e) => {
+      const w = e.target.value;
+      if (valWidth) valWidth.textContent = `${w}px`;
+      if (cardEl) cardEl.style.width = `${w}px`;
+    });
+
+    // Save Settings
     btnSaveSettings.addEventListener('click', () => {
       GM_setValue(STORAGE_KEYS.WEBHOOK_URL, inputWebhook.value.trim());
       GM_setValue(STORAGE_KEYS.SHEET_NAME, inputSheet.value.trim());
       GM_setValue(STORAGE_KEYS.CUSTOM_BIZ_NAME, inputCustomBiz.value.trim());
+      GM_setValue(STORAGE_KEYS.WIDGET_WIDTH, inputWidth.value);
       settingsModal.style.display = 'none';
+      if (settingsCaret) settingsCaret.innerHTML = ICONS.chevronDown;
       parseDashboardUrl();
       updateProgressUI();
       showToast('Pengaturan berhasil disimpan.');
@@ -1094,7 +1335,7 @@
         showToast(`${rows.length} baris data berhasil dikirim ke Google Sheet.`);
         setStatus(`Selesai: ${rows.length} baris masuk ke Sheet.`);
 
-        // NOTIFIKASI DI ATAS LAYAR (TOP NOTIFICATION BANNER)
+        // Notifikasi top banner
         showTopNotification(`Sukses: ${rows.length} Data QA [${currentBiz}] Berhasil Terkirim ke Spreadsheet!`, true);
       } catch (e) {
         showToast(`Gagal: ${e.message}`, false);
@@ -1149,6 +1390,7 @@
       } finally {
         btnStart.disabled = false;
         btnStop.style.display = 'none';
+        updateProgressUI();
       }
     }
 
@@ -1197,7 +1439,11 @@
       state.allEpisodes.clear();
       state.episodes.clear();
       updateProgressUI();
-      setStatus(`Beralih ke UMKM: ${state.businessName || state.businessId}`);
+      if (state.isOnBusinessPage) {
+        setStatus(`Beralih ke UMKM: ${state.businessName || state.businessId}`);
+      } else {
+        setStatus('Buka halaman bisnis / UMKM untuk memulai.');
+      }
     }
   }, 1000);
 
