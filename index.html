@@ -1613,7 +1613,7 @@
     let encKeys = Object.keys(encFiles);
     if (encKeys.length === 0) {
       showAlert(`Kartu SD / folder "${folderName}" berhasil diakses, tetapi tidak ditemukan file rekaman (.enc) di dalamnya.`);
-      if (resultCard) resultCard.style.display = 'none';
+      resetResultView();
       return;
     }
 
@@ -1632,7 +1632,7 @@
         isFiltered = true;
       } else {
         showAlert(`Tidak ditemukan file rekaman untuk kamera "atlascm${filterCode}" di dalam folder "${folderName}". Ditemukan ${encKeys.length} file rekaman lain di kartu SD.`);
-        if (resultCard) resultCard.style.display = 'none';
+        resetResultView();
         return;
       }
     }
@@ -1758,7 +1758,7 @@
 
     if (datesList.length === 0) {
       showAlert(`Tidak ada data rekaman valid yang dapat dihitung dari folder "${folderName}".`);
-      if (resultCard) resultCard.style.display = 'none';
+      resetResultView();
       return;
     }
 
@@ -1820,6 +1820,26 @@
 
     // Simpan otomatis ke riwayat log
     saveScanLog(scanData, filterCode, folderName);
+  }
+
+  function activateResultView() {
+    const placeholder = document.getElementById('resultEmptyPlaceholder');
+    const content = document.getElementById('resultActiveContent');
+    const resultCard = document.getElementById('resultCard');
+
+    if (placeholder) placeholder.style.display = 'none';
+    if (content) content.style.display = 'block';
+    if (resultCard) {
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function resetResultView() {
+    const placeholder = document.getElementById('resultEmptyPlaceholder');
+    const content = document.getElementById('resultActiveContent');
+    if (placeholder) placeholder.style.display = 'block';
+    if (content) content.style.display = 'none';
   }
 
   // ==============================================================
@@ -2202,8 +2222,7 @@
             } else {
               switchDateTab('ALL');
             }
-            resultCard.style.display = 'block';
-            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            activateResultView();
             saveScanLog(data, code, data.target_folder);
             return;
           }
@@ -2816,7 +2835,7 @@
 
     if (datesList.length === 0) {
       showAlert(`Tidak ada data rekaman valid yang dapat dihitung dari folder "${folderName}".`);
-      if (resultCard) resultCard.style.display = 'none';
+      resetResultView();
       return;
     }
 
